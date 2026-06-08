@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:#f5f6f8; --bg2:#ffffff; --bg3:#f0f1f4;
+    --bg:#f5f6f8; --bg2:#ffffff; --bg3:#f0f2f5;
     --border:#e2e5ea; --border2:#d0d4db;
     --accent:#0066ff; --accent3:#e07b00;
     --green:#059669; --red:#dc2626;
@@ -18,6 +18,8 @@
   }
   *{margin:0;padding:0;box-sizing:border-box;}
   body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;min-height:100vh;}
+
+  /* HEADER */
   header{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
   .logo{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:var(--text);}
   .logo span{color:var(--accent);}
@@ -28,10 +30,14 @@
   .refresh-icon{display:inline-block;}
   .refresh-btn.spinning .refresh-icon{animation:spin 0.7s linear infinite;}
   @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* NAV */
   .nav-tabs{display:flex;padding:0 24px;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto;}
   .nav-tab{padding:11px 20px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.15s;display:flex;align-items:center;gap:6px;}
   .nav-tab:hover{color:var(--text);}
   .nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:700;}
+
+  /* MAIN */
   main{padding:20px 24px;max-width:1600px;margin:0 auto;}
   .section{display:none;}.section.active{display:block;}
   .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
@@ -44,29 +50,41 @@
   .add-btn{background:var(--accent);color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;transition:background 0.15s;}
   .add-btn:hover{background:#0052cc;}
 
-  /* ROW TABLE */
-  .row-table{background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:16px;}
-  .row-table-head{display:grid;grid-template-columns:200px 150px 70px 90px 90px 90px 90px 40px;padding:8px 16px;background:var(--bg3);border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--text3);letter-spacing:0.4px;text-transform:uppercase;}
-  .row-item{display:grid;grid-template-columns:200px 150px 70px 90px 90px 90px 90px 40px;padding:11px 16px;border-bottom:1px solid var(--border);align-items:center;transition:background 0.1s;}
+  /* ROW TABLE — fixed columns with px */
+  .row-table{background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:16px;width:100%;}
+
+  .row-cols{display:grid;grid-template-columns:44px 180px 1fr 64px 90px 90px 90px 90px 36px;align-items:center;}
+
+  .row-table-head{padding:8px 12px;background:var(--bg3);border-bottom:1px solid var(--border);}
+  .row-table-head .row-cols{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:0.4px;text-transform:uppercase;}
+  .row-table-head .row-cols > div{padding:0 4px;}
+  .row-table-head .col-chg{text-align:right;}
+
+  .row-item{padding:10px 12px;border-bottom:1px solid var(--border);transition:background 0.1s;cursor:grab;}
   .row-item:last-child{border-bottom:none;}
   .row-item:hover{background:var(--bg3);}
+  .row-item.dragging{opacity:0.4;background:var(--bg3);}
+  .row-item.drag-over{border-top:2px solid var(--accent);}
+
+  .drag-handle{color:var(--text3);font-size:14px;cursor:grab;user-select:none;display:flex;align-items:center;justify-content:center;}
+  .drag-handle:active{cursor:grabbing;}
+
+  .row-cols > div{padding:0 4px;}
   .row-name{display:flex;flex-direction:column;gap:2px;}
   .row-name-main{font-weight:700;font-size:13px;color:var(--text);}
   .row-name-sub{font-size:11px;color:var(--text3);font-family:'Space Mono',monospace;}
-  .row-price{font-family:'Space Mono',monospace;font-size:14px;font-weight:700;color:var(--text);}
+  .row-price{font-family:'Space Mono',monospace;font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;}
   .row-unit{font-size:11px;color:var(--text3);}
-  .chg{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;text-align:right;}
+  .col-chg{text-align:right;}
+  .chg{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;}
   .chg.pos{color:var(--green);}.chg.neg{color:var(--red);}.chg.neu{color:var(--text3);}
-  .row-remove{display:flex;justify-content:flex-end;}
-  .remove-btn{background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;width:24px;height:24px;border-radius:4px;display:flex;align-items:center;justify-content:center;opacity:0;transition:all 0.15s;}
-  .row-item:hover .remove-btn,.crypto-card:hover .remove-btn{opacity:1;}
+  .remove-btn{background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;width:24px;height:24px;border-radius:4px;display:flex;align-items:center;justify-content:center;opacity:0;transition:all 0.15s;}
+  .row-item:hover .remove-btn{opacity:1;}
   .remove-btn:hover{background:rgba(220,38,38,0.1);color:var(--red);}
 
   /* LOADING */
   .loading-state{display:flex;align-items:center;gap:8px;color:var(--text3);font-size:12px;padding:20px 16px;}
   .spinner{width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0;}
-
-  /* SECTION NOTE */
   .section-note{font-size:11px;color:var(--text3);margin-bottom:12px;padding:7px 12px;background:#fffbeb;border-radius:6px;border-left:3px solid var(--accent3);}
 
   /* ECONOMY */
@@ -79,19 +97,18 @@
   .econ-card-unit{font-size:10px;color:var(--text3);margin-top:3px;}
   .econ-card-chg{font-size:11px;margin-top:4px;font-family:'Space Mono',monospace;font-weight:700;}
   .econ-card-chg.pos{color:var(--green);}.econ-card-chg.neg{color:var(--red);}
-
-  /* CHART */
   .chart-section{background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:14px 16px;margin-bottom:8px;box-shadow:var(--shadow);}
   .chart-title{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;}
   .chart-container{position:relative;height:170px;}
 
   /* CRYPTO */
-  .crypto-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;}
+  .crypto-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:14px;}
   .crypto-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:14px;box-shadow:var(--shadow);position:relative;}
+  .crypto-card:hover .remove-btn{opacity:1;}
   .crypto-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
   .crypto-name{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--text);}
   .crypto-price{font-family:'Space Mono',monospace;font-size:16px;font-weight:700;}
-  .crypto-changes{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+  .crypto-changes{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
   .crypto-chg{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;}
   .crypto-chg .period{color:var(--text3);font-weight:400;margin-right:2px;font-size:10px;}
   .crypto-chg.pos{color:var(--green);}.crypto-chg.neg{color:var(--red);}.crypto-chg.neu{color:var(--text3);}
@@ -115,7 +132,7 @@
   .modal-actions{display:flex;gap:8px;justify-content:flex-end;}
   .modal-cancel{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;}
   .modal-confirm{background:var(--red);border:none;color:#fff;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;}
-  .modal-confirm.add{background:var(--accent);color:#fff;}
+  .modal-confirm.add{background:var(--accent);}
   .divider{height:1px;background:var(--border);margin:20px 0;}
 </style>
 </head>
@@ -182,7 +199,7 @@
         <button class="add-btn" onclick="confirmAdd('crypto')">+ 추가</button>
       </div>
     </div>
-    <div class="section-note">💡 업비트 KRW 마켓 기준. 일봉 캔들차트 (30일).</div>
+    <div class="section-note">💡 업비트 KRW 마켓 기준. 일봉 캔들차트 (30일). 좌우 드래그로 순서 변경.</div>
     <div class="crypto-grid" id="crypto-grid"><div class="loading-state"><div class="spinner"></div> 로딩 중...</div></div>
   </section>
   <section class="section" id="section-banking">
@@ -210,186 +227,258 @@
     </div>
   </div>
 </div>
+
 <script>
-const CORS='https://corsproxy.io/?';
-const state={
-  forex:{tickers:JSON.parse(localStorage.getItem('dash_forex')||'null')||[
-    {symbol:'KRW=X',label:'원/달러',sub:'USD/KRW',unit:'KRW'},
-    {symbol:'EURUSD=X',label:'유로/달러',sub:'EUR/USD',unit:'USD'},
-    {symbol:'JPY=X',label:'엔/달러',sub:'USD/JPY',unit:'JPY'},
-    {symbol:'CNY=X',label:'위안/달러',sub:'USD/CNY',unit:'CNY'},
+const CORS = 'https://corsproxy.io/?';
+
+const state = {
+  forex: { tickers: JSON.parse(localStorage.getItem('dash_forex') || 'null') || [
+    {symbol:'KRW=X',    label:'원/달러',   sub:'USD/KRW', unit:'KRW'},
+    {symbol:'EURUSD=X', label:'유로/달러', sub:'EUR/USD', unit:'USD'},
+    {symbol:'JPY=X',    label:'엔/달러',   sub:'USD/JPY', unit:'JPY'},
+    {symbol:'CNY=X',    label:'위안/달러', sub:'USD/CNY', unit:'CNY'},
   ]},
-  stocks:{tickers:JSON.parse(localStorage.getItem('dash_stocks')||'null')||[
-    {symbol:'^KS11',label:'코스피',sub:'KOSPI',unit:'KRW'},
-    {symbol:'^KQ11',label:'코스닥',sub:'KOSDAQ',unit:'KRW'},
-    {symbol:'^GSPC',label:'S&P 500',sub:'S&P500',unit:'USD'},
-    {symbol:'^IXIC',label:'나스닥',sub:'NASDAQ',unit:'USD'},
-    {symbol:'^N225',label:'닛케이',sub:'Nikkei 225',unit:'JPY'},
-    {symbol:'000001.SS',label:'상하이종합',sub:'SSE Composite',unit:'CNY'},
+  stocks: { tickers: JSON.parse(localStorage.getItem('dash_stocks') || 'null') || [
+    {symbol:'^KS11',     label:'코스피',    sub:'KOSPI',         unit:'KRW'},
+    {symbol:'^KQ11',     label:'코스닥',    sub:'KOSDAQ',        unit:'KRW'},
+    {symbol:'^GSPC',     label:'S&P 500',  sub:'S&P500',        unit:'USD'},
+    {symbol:'^IXIC',     label:'나스닥',    sub:'NASDAQ',        unit:'USD'},
+    {symbol:'^N225',     label:'닛케이',    sub:'Nikkei 225',   unit:'JPY'},
+    {symbol:'000001.SS', label:'상하이종합',sub:'SSE Composite', unit:'CNY'},
   ]},
-  crypto:{tickers:JSON.parse(localStorage.getItem('dash_crypto')||'null')||[
-    {symbol:'KRW-BTC',label:'BTC / KRW',upbit:true},
-    {symbol:'KRW-USDT',label:'USDT / KRW',upbit:true},
-    {symbol:'KRW-ETH',label:'ETH / KRW',upbit:true},
-    {symbol:'BTC-USDT',label:'BTC / USDT',upbit:false},
+  crypto: { tickers: JSON.parse(localStorage.getItem('dash_crypto') || 'null') || [
+    {symbol:'KRW-BTC',  label:'BTC / KRW',  upbit:true},
+    {symbol:'KRW-USDT', label:'USDT / KRW', upbit:true},
+    {symbol:'KRW-ETH',  label:'ETH / KRW',  upbit:true},
+    {symbol:'BTC-USDT', label:'BTC / USDT', upbit:false},
   ]}
 };
-let pendingAction=null;
-const charts={};
 
-function switchTab(tab){
-  const tabs=['forex','stocks','economy','crypto','banking'];
-  document.querySelectorAll('.nav-tab').forEach((el,i)=>el.classList.toggle('active',tabs[i]===tab));
-  document.querySelectorAll('.section').forEach(el=>el.classList.remove('active'));
+let pendingAction = null;
+const charts = {};
+
+// ── TABS ──
+function switchTab(tab) {
+  const tabs = ['forex','stocks','economy','crypto','banking'];
+  document.querySelectorAll('.nav-tab').forEach((el,i) => el.classList.toggle('active', tabs[i]===tab));
+  document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
   document.getElementById('section-'+tab).classList.add('active');
 }
 
-async function fetchYahooQuote(symbol){
-  try{
-    const url=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=20d`;
-    const res=await fetch(CORS+encodeURIComponent(url));
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const json=await res.json();
-    const result=json.chart?.result?.[0];
-    if(!result) throw new Error('no result');
-    const meta=result.meta;
-    const allC=result.indicators?.quote?.[0]?.close||[];
-    const closes=allC.filter(c=>c!=null);
-    const price=meta.regularMarketPrice??meta.previousClose;
-    const n=closes.length;
-    return{price,currency:meta.currency,
-      change1d:n>=2?pct(closes[n-1],closes[n-2]):null,
-      change3d:n>=4?pct(closes[n-1],closes[n-4]):null,
-      change5d:n>=6?pct(closes[n-1],closes[n-6]):null,
-      change10d:n>=11?pct(closes[n-1],closes[n-11]):null,
-      closes,error:false};
-  }catch(e){return{error:true,msg:e.message};}
+// ── YAHOO FINANCE ──
+async function fetchYahooQuote(symbol) {
+  try {
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=20d`;
+    const res = await fetch(CORS + encodeURIComponent(url));
+    if (!res.ok) throw new Error('HTTP '+res.status);
+    const json = await res.json();
+    const result = json.chart?.result?.[0];
+    if (!result) throw new Error('no result');
+    const meta = result.meta;
+    const raw = result.indicators?.quote?.[0]?.close || [];
+    const closes = raw.filter(c => c != null);
+    const price = meta.regularMarketPrice ?? meta.previousClose;
+    const n = closes.length;
+    return {
+      price, currency: meta.currency,
+      change1d:  n>=2  ? pct(closes[n-1],closes[n-2])  : null,
+      change3d:  n>=4  ? pct(closes[n-1],closes[n-4])  : null,
+      change5d:  n>=6  ? pct(closes[n-1],closes[n-6])  : null,
+      change10d: n>=11 ? pct(closes[n-1],closes[n-11]) : null,
+      closes, error:false
+    };
+  } catch(e) { return {error:true, msg:e.message}; }
 }
 
-function pct(a,b){if(!b)return null;return((a-b)/Math.abs(b))*100;}
-function fmtNum(n,dec=2){if(n==null||isNaN(n))return'─';return n.toLocaleString('ko-KR',{minimumFractionDigits:dec,maximumFractionDigits:dec});}
-function fmtChg(v){
-  if(v==null||isNaN(v))return'<span class="chg neu">─</span>';
-  const sign=v>0?'+':'',cls=v>0?'pos':v<0?'neg':'neu';
-  return`<span class="chg ${cls}">${sign}${v.toFixed(2)}%</span>`;
+function pct(a,b) { return !b ? null : ((a-b)/Math.abs(b))*100; }
+function fmtNum(n, dec=2) {
+  if (n==null||isNaN(n)) return '─';
+  return n.toLocaleString('ko-KR',{minimumFractionDigits:dec,maximumFractionDigits:dec});
+}
+function fmtChg(v) {
+  if (v==null||isNaN(v)) return '<span class="chg neu">─</span>';
+  const sign=v>0?'+':'', cls=v>0?'pos':v<0?'neg':'neu';
+  return `<span class="chg ${cls}">${sign}${v.toFixed(2)}%</span>`;
 }
 
-function renderRowTable(wrapId,tickers,results,section){
-  const wrap=document.getElementById(wrapId);
-  let html=`<div class="row-table">
+// ── ROW TABLE RENDER ──
+function renderRowTable(wrapId, tickers, results, section) {
+  const wrap = document.getElementById(wrapId);
+  let html = `<div class="row-table">
     <div class="row-table-head">
-      <div>종목</div><div>현재가</div><div>단위</div>
-      <div style="text-align:right">D-0</div>
-      <div style="text-align:right">D-3</div>
-      <div style="text-align:right">D-5</div>
-      <div style="text-align:right">D-10</div>
-      <div></div>
+      <div class="row-cols">
+        <div></div>
+        <div>종목</div>
+        <div>현재가</div>
+        <div>단위</div>
+        <div class="col-chg">D-0</div>
+        <div class="col-chg">D-3</div>
+        <div class="col-chg">D-5</div>
+        <div class="col-chg">D-10</div>
+        <div></div>
+      </div>
     </div>`;
-  tickers.forEach((t,i)=>{
-    const d=results[i];
-    const isKRW=t.unit==='KRW';
-    const dec=isKRW?2:(t.symbol.includes('JPY')?2:4);
-    const price=d.error?'─':fmtNum(d.price,dec);
-    html+=`<div class="row-item">
-      <div class="row-name"><span class="row-name-main">${t.label}</span><span class="row-name-sub">${t.sub}</span></div>
-      <div class="row-price">${price}</div>
-      <div class="row-unit">${t.unit||''}</div>
-      <div>${d.error?'<span class="chg neu">─</span>':fmtChg(d.change1d)}</div>
-      <div>${d.error?'<span class="chg neu">─</span>':fmtChg(d.change3d)}</div>
-      <div>${d.error?'<span class="chg neu">─</span>':fmtChg(d.change5d)}</div>
-      <div>${d.error?'<span class="chg neu">─</span>':fmtChg(d.change10d)}</div>
-      <div class="row-remove"><button class="remove-btn" onclick="confirmRemove('${section}',${i})" title="제거">✕</button></div>
-    </div>`;
+
+  tickers.forEach((t, i) => {
+    const d = results[i];
+    const isKRW = t.unit === 'KRW';
+    const dec = isKRW ? 2 : (t.symbol.includes('JPY') ? 2 : 4);
+    const price = d.error ? '─' : fmtNum(d.price, dec);
+    html += `
+      <div class="row-item" draggable="true"
+           data-section="${section}" data-idx="${i}"
+           ondragstart="onDragStart(event)"
+           ondragover="onDragOver(event)"
+           ondrop="onDrop(event)"
+           ondragend="onDragEnd(event)">
+        <div class="row-cols">
+          <div class="drag-handle" title="드래그하여 순서 변경">⠿</div>
+          <div class="row-name">
+            <span class="row-name-main">${t.label}</span>
+            <span class="row-name-sub">${t.sub}</span>
+          </div>
+          <div class="row-price">${price}</div>
+          <div class="row-unit">${t.unit||''}</div>
+          <div class="col-chg">${d.error?'<span class="chg neu">─</span>':fmtChg(d.change1d)}</div>
+          <div class="col-chg">${d.error?'<span class="chg neu">─</span>':fmtChg(d.change3d)}</div>
+          <div class="col-chg">${d.error?'<span class="chg neu">─</span>':fmtChg(d.change5d)}</div>
+          <div class="col-chg">${d.error?'<span class="chg neu">─</span>':fmtChg(d.change10d)}</div>
+          <div style="display:flex;justify-content:flex-end">
+            <button class="remove-btn" onclick="confirmRemove('${section}',${i})" title="제거">✕</button>
+          </div>
+        </div>
+      </div>`;
   });
-  html+='</div>';
-  wrap.innerHTML=html;
+  html += '</div>';
+  wrap.innerHTML = html;
 }
 
-async function loadForex(){
-  document.getElementById('forex-table-wrap').innerHTML='<div class="loading-state"><div class="spinner"></div> 환율 로딩 중...</div>';
-  const results=await Promise.all(state.forex.tickers.map(t=>fetchYahooQuote(t.symbol)));
-  renderRowTable('forex-table-wrap',state.forex.tickers,results,'forex');
+// ── DRAG & DROP ──
+let dragSrcIdx = null;
+let dragSection = null;
+
+function onDragStart(e) {
+  dragSrcIdx = parseInt(e.currentTarget.dataset.idx);
+  dragSection = e.currentTarget.dataset.section;
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
 }
 
-async function loadStocks(){
-  document.getElementById('stocks-table-wrap').innerHTML='<div class="loading-state"><div class="spinner"></div> 주가 로딩 중...</div>';
-  const results=await Promise.all(state.stocks.tickers.map(t=>fetchYahooQuote(t.symbol)));
-  renderRowTable('stocks-table-wrap',state.stocks.tickers,results,'stocks');
+function onDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.row-item.drag-over').forEach(el => el.classList.remove('drag-over'));
+  e.currentTarget.classList.add('drag-over');
 }
 
-const ECON={
+function onDrop(e) {
+  e.preventDefault();
+  const targetIdx = parseInt(e.currentTarget.dataset.idx);
+  if (dragSrcIdx === null || dragSrcIdx === targetIdx) return;
+  const tickers = state[dragSection].tickers;
+  const [moved] = tickers.splice(dragSrcIdx, 1);
+  tickers.splice(targetIdx, 0, moved);
+  saveTickers(dragSection);
+  reloadSection(dragSection);
+}
+
+function onDragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('.row-item.drag-over').forEach(el => el.classList.remove('drag-over'));
+  dragSrcIdx = null;
+  dragSection = null;
+}
+
+// ── FOREX ──
+async function loadForex() {
+  document.getElementById('forex-table-wrap').innerHTML = '<div class="loading-state"><div class="spinner"></div> 환율 로딩 중...</div>';
+  const results = await Promise.all(state.forex.tickers.map(t => fetchYahooQuote(t.symbol)));
+  renderRowTable('forex-table-wrap', state.forex.tickers, results, 'forex');
+}
+
+// ── STOCKS ──
+async function loadStocks() {
+  document.getElementById('stocks-table-wrap').innerHTML = '<div class="loading-state"><div class="spinner"></div> 주가 로딩 중...</div>';
+  const results = await Promise.all(state.stocks.tickers.map(t => fetchYahooQuote(t.symbol)));
+  renderRowTable('stocks-table-wrap', state.stocks.tickers, results, 'stocks');
+}
+
+// ── ECONOMY ──
+const ECON = {
   us:[
-    {symbol:'^IRX',label:'T-Bill 13주',type:'bond'},
-    {symbol:'^FVX',label:'5년 국채',type:'bond'},
-    {symbol:'^TNX',label:'10년 국채',type:'bond'},
-    {symbol:'^TYX',label:'30년 국채',type:'bond'},
-    {symbol:'__static',label:'기준금리 (Fed)',type:'rate',val:5.33,unit:'%'},
-    {symbol:'__static',label:'M2 통화량',type:'m2',val:21.3,unit:'조$'},
+    {symbol:'^IRX',     label:'T-Bill 13주', type:'bond'},
+    {symbol:'^FVX',     label:'5년 국채',    type:'bond'},
+    {symbol:'^TNX',     label:'10년 국채',   type:'bond'},
+    {symbol:'^TYX',     label:'30년 국채',   type:'bond'},
+    {symbol:'__static', label:'기준금리 (Fed)',  type:'rate', val:5.33, unit:'%'},
+    {symbol:'__static', label:'M2 통화량',       type:'m2',   val:21.3, unit:'조$'},
   ],
   kr:[
-    {symbol:'KR3YT=RR',label:'3년 국채',type:'bond'},
-    {symbol:'KR5YT=RR',label:'5년 국채',type:'bond'},
-    {symbol:'KR10YT=RR',label:'10년 국채',type:'bond'},
-    {symbol:'KR30YT=RR',label:'30년 국채',type:'bond'},
-    {symbol:'__static',label:'기준금리 (한은)',type:'rate',val:3.0,unit:'%'},
-    {symbol:'__static',label:'M2 통화량',type:'m2',val:4050,unit:'조원'},
+    {symbol:'KR3YT=RR',  label:'3년 국채',  type:'bond'},
+    {symbol:'KR5YT=RR',  label:'5년 국채',  type:'bond'},
+    {symbol:'KR10YT=RR', label:'10년 국채', type:'bond'},
+    {symbol:'KR30YT=RR', label:'30년 국채', type:'bond'},
+    {symbol:'__static',  label:'기준금리 (한은)', type:'rate', val:3.0,  unit:'%'},
+    {symbol:'__static',  label:'M2 통화량',       type:'m2',  val:4050, unit:'조원'},
   ],
   cn:[
-    {symbol:'CN3YT=RR',label:'3년 국채',type:'bond'},
-    {symbol:'CN5YT=RR',label:'5년 국채',type:'bond'},
-    {symbol:'CN10YT=RR',label:'10년 국채',type:'bond'},
-    {symbol:'CN30YT=RR',label:'30년 국채',type:'bond'},
-    {symbol:'__static',label:'기준금리 (PBoC)',type:'rate',val:3.45,unit:'%'},
-    {symbol:'__static',label:'M2 통화량',type:'m2',val:303,unit:'조위안'},
+    {symbol:'CN3YT=RR',  label:'3년 국채',  type:'bond'},
+    {symbol:'CN5YT=RR',  label:'5년 국채',  type:'bond'},
+    {symbol:'CN10YT=RR', label:'10년 국채', type:'bond'},
+    {symbol:'CN30YT=RR', label:'30년 국채', type:'bond'},
+    {symbol:'__static',  label:'기준금리 (PBoC)', type:'rate', val:3.45, unit:'%'},
+    {symbol:'__static',  label:'M2 통화량',        type:'m2',  val:303,  unit:'조위안'},
   ]
 };
-const BOND_FB={
+const BOND_FB = {
   '^IRX':4.88,'^FVX':4.15,'^TNX':4.25,'^TYX':4.52,
   'KR3YT=RR':3.10,'KR5YT=RR':3.15,'KR10YT=RR':3.30,'KR30YT=RR':3.45,
   'CN3YT=RR':2.15,'CN5YT=RR':2.25,'CN10YT=RR':2.35,'CN30YT=RR':2.65,
 };
 
-async function loadEconomy(){
-  for(const c of['us','kr','cn']){
-    const grid=document.getElementById(`econ-${c}-grid`);
-    const items=ECON[c];
-    const fetches=items.map(it=>it.symbol==='__static'?Promise.resolve({static:true,val:it.val}):fetchYahooQuote(it.symbol));
-    const results=await Promise.all(fetches);
-    grid.innerHTML='';
-    const yL=[],yV=[];
-    items.forEach((it,i)=>{
-      const d=results[i];
-      let val,unit='%',chgHtml='';
-      if(d.static){val=it.val;unit=it.unit;}
-      else{
-        val=(!d.error&&d.price)?d.price:(BOND_FB[it.symbol]??null);
-        if(!d.error&&d.change1d!=null){
-          const sign=d.change1d>0?'+':'',cls=d.change1d>0?'pos':d.change1d<0?'neg':'neu';
+async function loadEconomy() {
+  for (const c of ['us','kr','cn']) {
+    const grid = document.getElementById(`econ-${c}-grid`);
+    const items = ECON[c];
+    const fetches = items.map(it => it.symbol==='__static'
+      ? Promise.resolve({static:true, val:it.val})
+      : fetchYahooQuote(it.symbol));
+    const results = await Promise.all(fetches);
+    grid.innerHTML = '';
+    const yL=[], yV=[];
+    items.forEach((it,i) => {
+      const d = results[i];
+      let val, unit='%', chgHtml='';
+      if (d.static) { val=it.val; unit=it.unit; }
+      else {
+        val = (!d.error&&d.price) ? d.price : (BOND_FB[it.symbol]??null);
+        if (!d.error&&d.change1d!=null) {
+          const sign=d.change1d>0?'+':'', cls=d.change1d>0?'pos':d.change1d<0?'neg':'neu';
           chgHtml=`<div class="econ-card-chg ${cls}">${sign}${d.change1d.toFixed(2)}%</div>`;
         }
-        if(val){yL.push(it.label);yV.push(val);}
+        if (val) { yL.push(it.label); yV.push(val); }
       }
-      grid.innerHTML+=`<div class="econ-card">
+      grid.innerHTML += `<div class="econ-card">
         <div class="econ-card-label">${it.label}</div>
         <div class="econ-card-value">${val!=null?fmtNum(val,2):'─'}</div>
         <div class="econ-card-unit">${unit}</div>
         ${chgHtml}
       </div>`;
     });
-    drawYieldCurve(c,yL,yV);
+    drawYieldCurve(c, yL, yV);
   }
 }
 
-function drawYieldCurve(c,labels,vals){
-  const id=`chart-${c}-yield`;
-  const canvas=document.getElementById(id);
-  if(!canvas||vals.length<2)return;
-  if(charts[id])charts[id].destroy();
-  const cols={us:'#0066ff',kr:'#059669',cn:'#e07b00'};
-  const col=cols[c];
-  charts[id]=new Chart(canvas,{
+function drawYieldCurve(c, labels, vals) {
+  const id = `chart-${c}-yield`;
+  const canvas = document.getElementById(id);
+  if (!canvas||vals.length<2) return;
+  if (charts[id]) charts[id].destroy();
+  const cols = {us:'#0066ff',kr:'#059669',cn:'#e07b00'};
+  const col = cols[c];
+  charts[id] = new Chart(canvas, {
     type:'line',
-    data:{labels,datasets:[{label:'금리(%)',data:vals,borderColor:col,backgroundColor:col+'22',fill:true,tension:0.35,pointBackgroundColor:col,pointRadius:4}]},
+    data:{labels, datasets:[{label:'금리(%)',data:vals,borderColor:col,backgroundColor:col+'22',fill:true,tension:0.35,pointBackgroundColor:col,pointRadius:4}]},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.parsed.y.toFixed(2)+'%'}}},
       scales:{
@@ -400,116 +489,197 @@ function drawYieldCurve(c,labels,vals){
   });
 }
 
-async function loadCrypto(){
-  const grid=document.getElementById('crypto-grid');
-  grid.innerHTML='<div class="loading-state"><div class="spinner"></div> 로딩 중...</div>';
-  const results=[];
-  for(const t of state.crypto.tickers){
-    if(t.upbit!==false)results.push(await fetchUpbitCandles(t.symbol));
-    else results.push(await fetchBinanceCandles('BTCUSDT'));
+// ── CRYPTO ──
+async function loadCrypto() {
+  const grid = document.getElementById('crypto-grid');
+  grid.innerHTML = '<div class="loading-state"><div class="spinner"></div> 로딩 중...</div>';
+  const results = [];
+  for (const t of state.crypto.tickers) {
+    results.push(t.upbit!==false ? await fetchUpbitCandles(t.symbol) : await fetchBinanceCandles('BTCUSDT'));
   }
-  grid.innerHTML='';
-  state.crypto.tickers.forEach((t,i)=>renderCryptoCard(grid,t,results[i],i));
+  grid.innerHTML = '';
+  state.crypto.tickers.forEach((t,i) => renderCryptoCard(grid, t, results[i], i));
 }
 
-async function fetchUpbitCandles(market,count=30){
-  try{
-    const res=await fetch(`https://api.upbit.com/v1/candles/days?market=${market}&count=${count}`);
-    const candles=await res.json();
-    const data=candles.slice().reverse();
-    const ohlc=data.map(c=>({t:c.candle_date_time_kst?.slice(0,10)||'',o:c.opening_price,h:c.high_price,l:c.low_price,c:c.trade_price}));
-    const closes=ohlc.map(c=>c.c);
-    const n=closes.length,price=closes[n-1];
-    return{ok:true,ohlc,price,change1d:n>=2?pct(closes[n-1],closes[n-2]):null,change3d:n>=4?pct(closes[n-1],closes[n-4]):null,change5d:n>=6?pct(closes[n-1],closes[n-6]):null};
-  }catch(e){return{ok:false,error:e.message};}
+async function fetchUpbitCandles(market, count=30) {
+  try {
+    const res = await fetch(`https://api.upbit.com/v1/candles/days?market=${market}&count=${count}`);
+    const candles = await res.json();
+    const data = candles.slice().reverse();
+    const ohlc = data.map(c => ({
+      t: c.candle_date_time_kst?.slice(0,10)||'',
+      o: c.opening_price, h: c.high_price,
+      l: c.low_price,     c: c.trade_price
+    }));
+    const closes = ohlc.map(x=>x.c), n=closes.length, price=closes[n-1];
+    return {ok:true, ohlc, price,
+      change1d: n>=2?pct(closes[n-1],closes[n-2]):null,
+      change3d: n>=4?pct(closes[n-1],closes[n-4]):null,
+      change5d: n>=6?pct(closes[n-1],closes[n-6]):null,
+    };
+  } catch(e) { return {ok:false, error:e.message}; }
 }
 
-async function fetchBinanceCandles(sym,limit=30){
-  try{
-    const res=await fetch(`https://api.binance.com/api/v3/klines?symbol=${sym}&interval=1d&limit=${limit}`);
-    const raw=await res.json();
-    const ohlc=raw.map(k=>({t:new Date(k[0]).toISOString().slice(0,10),o:parseFloat(k[1]),h:parseFloat(k[2]),l:parseFloat(k[3]),c:parseFloat(k[4])}));
-    const closes=ohlc.map(c=>c.c),n=closes.length;
-    return{ok:true,ohlc,price:closes[n-1],change1d:n>=2?pct(closes[n-1],closes[n-2]):null,change3d:n>=4?pct(closes[n-1],closes[n-4]):null,change5d:n>=6?pct(closes[n-1],closes[n-6]):null};
-  }catch(e){return{ok:false,error:e.message};}
+async function fetchBinanceCandles(sym, limit=30) {
+  try {
+    const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${sym}&interval=1d&limit=${limit}`);
+    const raw = await res.json();
+    const ohlc = raw.map(k=>({
+      t: new Date(k[0]).toISOString().slice(0,10),
+      o:parseFloat(k[1]),h:parseFloat(k[2]),l:parseFloat(k[3]),c:parseFloat(k[4])
+    }));
+    const closes=ohlc.map(x=>x.c), n=closes.length;
+    return {ok:true, ohlc, price:closes[n-1],
+      change1d:n>=2?pct(closes[n-1],closes[n-2]):null,
+      change3d:n>=4?pct(closes[n-1],closes[n-4]):null,
+      change5d:n>=6?pct(closes[n-1],closes[n-6]):null,
+    };
+  } catch(e) { return {ok:false, error:e.message}; }
 }
 
-function renderCryptoCard(grid,ticker,d,idx){
-  const isKRW=ticker.symbol.includes('KRW');
-  const price=d.ok?d.price:null;
-  const priceStr=price?(isKRW?'₩'+fmtNum(price,0):'$'+fmtNum(price,2)):'─';
-  const c1=d.change1d,c3=d.change3d,c5=d.change5d;
-  const priceColor=c1>0?'var(--green)':c1<0?'var(--red)':'var(--text)';
-  const fC=(v,lbl)=>{if(v==null)return'';const sign=v>0?'+':'',cls=v>0?'pos':v<0?'neg':'neu';return`<span class="crypto-chg ${cls}"><span class="period">${lbl}</span>${sign}${v.toFixed(2)}%</span>`;};
-  const canvasId=`cc-${idx}`;
-  const div=document.createElement('div');
-  div.className='crypto-card';div.id=`crypto-card-${idx}`;
-  div.innerHTML=`
+function renderCryptoCard(grid, ticker, d, idx) {
+  const isKRW = ticker.symbol.includes('KRW');
+  const price = d.ok ? d.price : null;
+  const priceStr = price ? (isKRW?'₩'+fmtNum(price,0):'$'+fmtNum(price,2)) : '─';
+  const c1=d.change1d, c3=d.change3d, c5=d.change5d;
+  const priceColor = c1>0?'var(--green)':c1<0?'var(--red)':'var(--text)';
+  const fC = (v,lbl) => {
+    if (v==null) return '';
+    const sign=v>0?'+':'', cls=v>0?'pos':v<0?'neg':'neu';
+    return `<span class="crypto-chg ${cls}"><span class="period">${lbl}</span>${sign}${v.toFixed(2)}%</span>`;
+  };
+  const canvasId = `cc-${idx}`;
+  const div = document.createElement('div');
+  div.className='crypto-card'; div.id=`crypto-card-${idx}`;
+  div.innerHTML = `
     <button class="remove-btn" style="position:absolute;top:8px;right:8px;" onclick="confirmRemove('crypto',${idx})" title="제거">✕</button>
     <div class="crypto-header">
       <div class="crypto-name">${ticker.label}</div>
       <div class="crypto-price" style="color:${priceColor}">${priceStr}</div>
     </div>
     <div class="crypto-changes">${fC(c1,'D-0')} ${fC(c3,'D-3')} ${fC(c5,'D-5')}</div>
-    <div style="height:160px"><canvas id="${canvasId}"></canvas></div>`;
+    <div style="height:180px;position:relative"><canvas id="${canvasId}"></canvas></div>`;
   grid.appendChild(div);
-  setTimeout(()=>{
-    const canvas=document.getElementById(canvasId);
-    if(!canvas||!d.ok||!d.ohlc?.length)return;
-    drawCandleChart(canvas,d.ohlc,isKRW,canvasId);
-  },60);
+  setTimeout(() => {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas||!d.ok||!d.ohlc?.length) return;
+    drawCandleChart(canvas, d.ohlc, isKRW, canvasId);
+  }, 80);
 }
 
-function drawCandleChart(canvas,ohlc,isKRW,id){
-  if(charts[id])charts[id].destroy();
-  const labels=ohlc.map(c=>c.t.slice(5));
-  const greens=ohlc.map(c=>c.c>=c.o);
-  charts[id]=new Chart(canvas,{
-    type:'bar',
-    data:{
+// ── CANDLE CHART — custom SVG-style via Chart.js custom plugin ──
+function drawCandleChart(canvas, ohlc, isKRW, id) {
+  if (charts[id]) charts[id].destroy();
+
+  const labels = ohlc.map(c => c.t.slice(5));
+  const candlePlugin = {
+    id: 'candlestick',
+    beforeDatasetsDraw(chart) {
+      const {ctx, data, scales:{x, y}} = chart;
+      ctx.save();
+      data.labels.forEach((lbl, i) => {
+        const c = ohlc[i];
+        if (!c) return;
+        const isGreen = c.c >= c.o;
+        const bodyColor = isGreen ? '#059669' : '#dc2626';
+        const wickColor = isGreen ? '#05966988' : '#dc262688';
+
+        const xPos = x.getPixelForValue(i);
+        const barWidth = Math.max((x.width / ohlc.length) * 0.55, 4);
+
+        const yHigh  = y.getPixelForValue(c.h);
+        const yLow   = y.getPixelForValue(c.l);
+        const yOpen  = y.getPixelForValue(c.o);
+        const yClose = y.getPixelForValue(c.c);
+        const yTop   = Math.min(yOpen, yClose);
+        const yBot   = Math.max(yOpen, yClose);
+        const bodyH  = Math.max(yBot - yTop, 1);
+
+        // wick
+        ctx.strokeStyle = wickColor;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(xPos, yHigh);
+        ctx.lineTo(xPos, yLow);
+        ctx.stroke();
+
+        // body
+        ctx.fillStyle = bodyColor;
+        ctx.fillRect(xPos - barWidth/2, yTop, barWidth, bodyH);
+
+        // body border
+        ctx.strokeStyle = bodyColor;
+        ctx.lineWidth = 0.5;
+        ctx.strokeRect(xPos - barWidth/2, yTop, barWidth, bodyH);
+      });
+      ctx.restore();
+    }
+  };
+
+  // compute y axis range
+  const allH = ohlc.map(c=>c.h), allL = ohlc.map(c=>c.l);
+  const yMin = Math.min(...allL), yMax = Math.max(...allH);
+  const yPad = (yMax - yMin) * 0.05;
+
+  charts[id] = new Chart(canvas, {
+    type: 'line',
+    data: {
       labels,
-      datasets:[
-        {label:'base',data:ohlc.map(c=>c.l),backgroundColor:'transparent',borderWidth:0,stack:'c'},
-        {label:'wick_lo',data:ohlc.map(c=>Math.min(c.o,c.c)-c.l),backgroundColor:ohlc.map((_,i)=>greens[i]?'#05966955':'#dc262655'),borderWidth:0,barPercentage:0.2,stack:'c'},
-        {label:'body',data:ohlc.map(c=>Math.max(Math.abs(c.c-c.o),0.001)),backgroundColor:ohlc.map((_,i)=>greens[i]?'#059669':'#dc2626'),borderWidth:0,barPercentage:0.6,stack:'c'},
-        {label:'wick_hi',data:ohlc.map(c=>c.h-Math.max(c.o,c.c)),backgroundColor:ohlc.map((_,i)=>greens[i]?'#05966955':'#dc262655'),borderWidth:0,barPercentage:0.2,stack:'c'},
-      ]
+      datasets: [{
+        data: ohlc.map(c => (c.h+c.l)/2), // invisible midpoint line
+        borderColor: 'transparent',
+        pointRadius: 0,
+        borderWidth: 0,
+      }]
     },
-    options:{
-      responsive:true,maintainAspectRatio:false,animation:false,
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          callbacks:{
-            title:ctx=>{const c=ohlc[ctx[0].dataIndex];return c?c.t:'';},
-            label:ctx=>{
-              if(ctx.datasetIndex!==2)return null;
-              const c=ohlc[ctx.dataIndex];if(!c)return null;
-              const fmt=v=>isKRW?'₩'+fmtNum(v,0):'$'+fmtNum(v,2);
-              return[`시가: ${fmt(c.o)}`,`고가: ${fmt(c.h)}`,`저가: ${fmt(c.l)}`,`종가: ${fmt(c.c)}`];
-            },
-            filter:ctx=>ctx.datasetIndex===2
+    plugins: [candlePlugin],
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      plugins: {
+        legend: {display:false},
+        tooltip: {
+          callbacks: {
+            title: ctx => ohlc[ctx[0].dataIndex]?.t || '',
+            label: ctx => {
+              const c = ohlc[ctx[0].dataIndex];
+              if (!c) return [];
+              const fmt = v => isKRW ? '₩'+fmtNum(v,0) : '$'+fmtNum(v,2);
+              return [`시가: ${fmt(c.o)}`, `고가: ${fmt(c.h)}`, `저가: ${fmt(c.l)}`, `종가: ${fmt(c.c)}`];
+            }
           }
         }
       },
-      scales:{
-        x:{stacked:true,grid:{display:false},ticks:{color:'#9ca3af',font:{size:9},maxTicksLimit:7}},
-        y:{stacked:true,grid:{color:'#e5e7eb'},ticks:{color:'#9ca3af',font:{size:9},maxTicksLimit:4,callback:v=>isKRW?'₩'+fmtNum(v,0):'$'+fmtNum(v,2)}}
+      scales: {
+        x: {
+          grid:{display:false},
+          ticks:{color:'#9ca3af',font:{size:9},maxTicksLimit:8}
+        },
+        y: {
+          min: yMin - yPad,
+          max: yMax + yPad,
+          grid:{color:'#e5e7eb'},
+          ticks:{color:'#9ca3af',font:{size:9},maxTicksLimit:5,
+            callback: v => isKRW
+              ? (v>=100000000 ? (v/100000000).toFixed(1)+'억' : (v/10000).toFixed(0)+'만')
+              : '$'+fmtNum(v,0)
+          }
+        }
       }
     }
   });
 }
 
-async function loadBanking(){
+// ── BANKING ──
+async function loadBanking() {
   document.getElementById('bank-loading').style.display='flex';
   document.getElementById('bank-deposit-section').style.display='none';
   document.getElementById('bank-loan-section').style.display='none';
-  const depositData=[
+  const depositData = [
     {rank:1,bank:'웰컴저축은행',product:'웰컴디지털뱅크 정기예금',rate:4.30,period:'12개월'},
     {rank:2,bank:'페퍼저축은행',product:'페퍼스 정기예금',rate:4.10,period:'12개월'},
     {rank:3,bank:'카카오뱅크',product:'카카오뱅크 정기예금',rate:3.80,period:'12개월'},
   ];
-  const loanData=[
+  const loanData = [
     {rank:1,bank:'케이뱅크',product:'아파트담보대출',rate:3.20,type:'주택담보'},
     {rank:2,bank:'카카오뱅크',product:'주택담보대출',rate:3.40,type:'주택담보'},
     {rank:3,bank:'IBK기업은행',product:'IBK주택담보대출',rate:3.55,type:'주택담보'},
@@ -521,10 +691,10 @@ async function loadBanking(){
   document.getElementById('bank-loan-section').style.display='block';
 }
 
-function renderBankCards(type,data){
-  const grid=document.getElementById(`bank-${type}-grid`);
-  const cols=['#0066ff','#059669','#e07b00'];
-  grid.innerHTML=data.map(item=>`
+function renderBankCards(type, data) {
+  const grid = document.getElementById(`bank-${type}-grid`);
+  const cols = ['#0066ff','#059669','#e07b00'];
+  grid.innerHTML = data.map(item=>`
     <div class="bank-card">
       <div class="bank-name"><span class="rank-badge" style="background:${cols[item.rank-1]}">#${item.rank}</span>${item.bank}</div>
       <div class="bank-rate-row"><span class="bank-rate-label">상품명</span><span style="color:var(--text2);font-size:12px">${item.product}</span></div>
@@ -533,60 +703,58 @@ function renderBankCards(type,data){
     </div>`).join('');
 }
 
-function confirmAdd(section){
-  const val=document.getElementById(`${section}-input`).value.trim().toUpperCase();
-  if(!val){alert('티커 코드를 입력하세요.');return;}
-  pendingAction={type:'add',section,symbol:val};
-  document.getElementById('modal-title').textContent='종목 추가';
-  document.getElementById('modal-body').innerHTML=`<strong>${val}</strong> 을(를) <strong>${sectionName(section)}</strong>에 추가하시겠습니까?<br><span style="color:var(--text3);font-size:11px;display:block;margin-top:6px">Yahoo Finance 티커코드 기준</span>`;
-  document.getElementById('modal-confirm-btn').className='modal-confirm add';
-  document.getElementById('modal-confirm-btn').textContent='추가';
+// ── MODAL ──
+function confirmAdd(section) {
+  const val = document.getElementById(`${section}-input`).value.trim().toUpperCase();
+  if (!val) { alert('티커 코드를 입력하세요.'); return; }
+  pendingAction = {type:'add', section, symbol:val};
+  document.getElementById('modal-title').textContent = '종목 추가';
+  document.getElementById('modal-body').innerHTML = `<strong>${val}</strong> 을(를) <strong>${sectionName(section)}</strong>에 추가하시겠습니까?<br><span style="color:var(--text3);font-size:11px;display:block;margin-top:6px">Yahoo Finance 티커코드 기준</span>`;
+  document.getElementById('modal-confirm-btn').className = 'modal-confirm add';
+  document.getElementById('modal-confirm-btn').textContent = '추가';
   document.getElementById('modal').classList.add('show');
 }
-
-function confirmRemove(section,idx){
-  const t=state[section].tickers[idx];
-  pendingAction={type:'remove',section,idx};
-  document.getElementById('modal-title').textContent='종목 제거';
-  document.getElementById('modal-body').innerHTML=`<strong>${t.label||t.symbol}</strong> 을(를) 제거하시겠습니까?`;
-  document.getElementById('modal-confirm-btn').className='modal-confirm';
-  document.getElementById('modal-confirm-btn').textContent='제거';
+function confirmRemove(section, idx) {
+  const t = state[section].tickers[idx];
+  pendingAction = {type:'remove', section, idx};
+  document.getElementById('modal-title').textContent = '종목 제거';
+  document.getElementById('modal-body').innerHTML = `<strong>${t.label||t.symbol}</strong> 을(를) 제거하시겠습니까?`;
+  document.getElementById('modal-confirm-btn').className = 'modal-confirm';
+  document.getElementById('modal-confirm-btn').textContent = '제거';
   document.getElementById('modal').classList.add('show');
 }
-
-function closeModal(){document.getElementById('modal').classList.remove('show');pendingAction=null;}
-
-async function modalConfirm(){
+function closeModal() { document.getElementById('modal').classList.remove('show'); pendingAction=null; }
+async function modalConfirm() {
   closeModal();
-  if(!pendingAction)return;
-  const{type,section,symbol,idx}=pendingAction;
-  if(type==='add'){
-    const isUpbit=section==='crypto'&&(symbol.startsWith('KRW-')||symbol.startsWith('USDT-'));
-    state[section].tickers.push({symbol,label:symbol,sub:symbol,unit:'',upbit:isUpbit});
-    saveTickers(section);await reloadSection(section);
-    const inp=document.getElementById(`${section}-input`);if(inp)inp.value='';
-  }else{
+  if (!pendingAction) return;
+  const {type,section,symbol,idx} = pendingAction;
+  if (type==='add') {
+    const isUpbit = section==='crypto' && (symbol.startsWith('KRW-')||symbol.startsWith('USDT-'));
+    state[section].tickers.push({symbol, label:symbol, sub:symbol, unit:'', upbit:isUpbit});
+    saveTickers(section); await reloadSection(section);
+    const inp=document.getElementById(`${section}-input`); if(inp) inp.value='';
+  } else {
     state[section].tickers.splice(idx,1);
-    saveTickers(section);await reloadSection(section);
+    saveTickers(section); await reloadSection(section);
   }
 }
-
-function saveTickers(s){localStorage.setItem(`dash_${s}`,JSON.stringify(state[s].tickers));}
-function sectionName(s){return{forex:'환율',stocks:'주식',crypto:'암호화폐'}[s]||s;}
-async function reloadSection(s){
-  if(s==='forex')await loadForex();
-  if(s==='stocks')await loadStocks();
-  if(s==='crypto')await loadCrypto();
+function saveTickers(s) { localStorage.setItem(`dash_${s}`, JSON.stringify(state[s].tickers)); }
+function sectionName(s) { return {forex:'환율',stocks:'주식',crypto:'암호화폐'}[s]||s; }
+async function reloadSection(s) {
+  if(s==='forex')  await loadForex();
+  if(s==='stocks') await loadStocks();
+  if(s==='crypto') await loadCrypto();
 }
 
-async function refreshAll(){
-  const btn=document.querySelector('.refresh-btn');btn.classList.add('spinning');
+// ── REFRESH ──
+async function refreshAll() {
+  const btn=document.querySelector('.refresh-btn'); btn.classList.add('spinning');
   await Promise.all([loadForex(),loadStocks(),loadEconomy(),loadCrypto(),loadBanking()]);
   btn.classList.remove('spinning');
   const now=new Date();
   document.getElementById('last-updated').textContent=`갱신: ${now.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}`;
 }
-(async()=>{await refreshAll();})();
+(async()=>{ await refreshAll(); })();
 </script>
 </body>
 </html>
