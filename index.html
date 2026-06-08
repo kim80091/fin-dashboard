@@ -810,14 +810,22 @@ function renderCryptoCard(grid,ticker,d,idx) {
   };
   const cid=`cc-${idx}`;
   const div=document.createElement('div');
-  div.className='crypto-card'; div.id=`crypto-card-${idx}`;
+  div.className='crypto-card';
+  div.id=`crypto-card-${idx}`;
+  div.draggable=true;
+  div.dataset.idx=String(idx);
+  div.addEventListener('dragstart', onCryptoDragStart);
+  div.addEventListener('dragover',  onCryptoDragOver);
+  div.addEventListener('drop',      onCryptoDrop);
+  div.addEventListener('dragend',   onCryptoDragEnd);
   div.innerHTML=`
-    <button class="remove-btn" style="position:absolute;top:8px;right:8px;" onclick="confirmRemove('crypto',${idx})">✕</button>
-    <div class="crypto-header">
+    <div style="position:absolute;top:10px;left:10px;color:var(--text3);font-size:14px;cursor:grab;user-select:none;z-index:2">⠿</div>
+    <button class="remove-btn" style="position:absolute;top:8px;right:8px;opacity:1" onclick="confirmRemove('crypto',${idx})">✕</button>
+    <div class="crypto-header" style="padding-left:22px">
       <div class="crypto-name">${ticker.label}</div>
       <div class="crypto-price" style="color:${priceColor}">${priceStr}</div>
     </div>
-    <div class="crypto-changes">${fC(c1,'D-0')} ${fC(c3,'D-3')} ${fC(c5,'D-5')}</div>
+    <div class="crypto-changes" style="padding-left:22px">${fC(c1,'D-0')} ${fC(c3,'D-3')} ${fC(c5,'D-5')}</div>
     <div style="height:260px;position:relative"><canvas id="${cid}"></canvas></div>`;
   grid.appendChild(div);
   setTimeout(()=>{
@@ -857,13 +865,13 @@ function drawCandleChart(canvas,ohlc,isKRW,id) {
     }
   };
   const allH=ohlc.map(c=>c.h),allL=ohlc.map(c=>c.l);
-  const yMin=Math.min(...allL),yMax=Math.max(...allH),yPad=(yMax-yMin)*.15;
+  const yMin=Math.min(...allL),yMax=Math.max(...allH),yPad=(yMax-yMin)*.20;
   charts[id]=new Chart(canvas,{
     type:'line',
     data:{labels,datasets:[{data:ohlc.map(c=>(c.h+c.l)/2),borderColor:'transparent',pointRadius:0,borderWidth:0}]},
     plugins:[candlePlugin],
     options:{
-      responsive:true,maintainAspectRatio:false,animation:false,
+      responsive:true,maintainAspectRatio:false,animation:false,clip:false,
       plugins:{legend:{display:false},tooltip:{callbacks:{
         title:ctx=>ohlc[ctx[0].dataIndex]?.t||'',
         label:ctx=>{
