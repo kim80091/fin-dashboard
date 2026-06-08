@@ -125,174 +125,113 @@
   .modal-confirm.add{background:var(--accent);}
   .divider{height:1px;background:var(--border);margin:20px 0;}
 
-  /* ── MOBILE RESPONSIVE ── */
+  /* ══════════════════════════════
+     MOBILE — 768px 이하
+  ══════════════════════════════ */
   @media (max-width: 768px) {
-    header { padding: 0 14px; height: 48px; }
-    .logo { font-size: 15px; }
+    /* 헤더 */
+    header { padding: 0 12px; height: 46px; }
+    .logo { font-size: 14px; }
     #last-updated { display: none; }
     .refresh-btn { padding: 5px 10px; font-size: 11px; }
 
-    .nav-tabs { padding: 0 8px; gap: 0; }
-    .nav-tab { padding: 9px 10px; font-size: 12px; gap: 4px; }
+    /* 탭 */
+    .nav-tabs { padding: 0 4px; }
+    .nav-tab { padding: 8px 8px; font-size: 11px; gap: 3px; }
 
-    main { padding: 12px 10px; }
+    /* 메인 */
+    main { padding: 10px 10px; }
 
-    /* 환율/주식 테이블 → 카드형으로 변환 */
-    .row-table { border-radius: 8px; }
-    .row-table-head { display: none; }
+    /* 섹션 헤더 */
+    .section-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .add-ticker-bar { width: 100%; }
+    .ticker-input { flex: 1; min-width: 0; }
 
+    /* ── 테이블 헤더 완전 숨김 ── */
+    .row-table-head { display: none !important; }
+
+    /* ── ROW ITEM → 카드형 ── */
+    .row-item {
+      display: block !important;
+      padding: 12px 14px;
+      cursor: default;
+    }
+
+    /* 모든 grid cols 무효화 */
     .forex-cols,
     .stocks-cols {
-      display: flex !important;
-      flex-wrap: wrap;
-      gap: 4px;
-      padding: 4px 0;
+      display: block !important;
     }
-    .forex-cols > div,
-    .stocks-cols > div { padding: 0 2px; }
 
-    /* 드래그핸들 숨김 */
-    .drag-handle { display: none !important; }
+    /* 드래그핸들·단위열 숨김 */
+    .drag-handle,
+    .pc-only,
+    .row-unit { display: none !important; }
 
-    /* 종목명 전체너비 */
-    .row-name { width: 100%; margin-bottom: 4px; }
+    /* 이름 + 가격 한 줄 */
+    .mobile-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 6px;
+    }
     .row-name-main { font-size: 14px; }
+    .row-name-sub  { font-size: 11px; }
+    .row-price     { font-size: 16px; font-weight: 700; text-align: right; }
 
-    /* 현재가 크게 */
-    .row-price { font-size: 16px; font-weight: 700; }
-
-    /* 등락률 배지형 */
-    .col-chg { text-align: left; }
-    .chg { font-size: 11px; }
+    /* 등락률 wrap */
+    .mobile-chgs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .mobile-chg-item {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+    }
+    .mobile-chg-label {
+      color: var(--text3);
+      font-size: 10px;
+      font-family: 'Space Mono', monospace;
+    }
 
     /* 제거버튼 항상 표시 */
     .remove-btn { opacity: 1 !important; }
 
     /* 경제 카드 */
     .econ-cards-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-    .econ-card-value { font-size: 14px !important; }
+    .econ-card-value { font-size: 13px !important; }
+    .econ-card { padding: 10px 12px; }
 
     /* 암호화폐 */
     .crypto-grid { grid-template-columns: 1fr; gap: 10px; }
 
-    /* 은행 테이블 */
-    .bank-cols {
-      display: flex !important;
-      flex-wrap: wrap;
-      gap: 4px;
-    }
-    .bank-cols > div { padding: 0 2px; }
-    .bank-prod { width: 100%; font-size: 11px; }
-    .bank-rate { font-size: 12px; }
-
-    /* 섹션 헤더 */
-    .section-header { flex-direction: column; align-items: flex-start; gap: 10px; }
-    .add-ticker-bar { width: 100%; }
-    .ticker-input { flex: 1; width: auto; }
-
     /* 차트 */
-    .chart-container { height: 140px; }
+    .chart-container { height: 130px; }
+
+    /* 은행 테이블도 카드형 */
+    .bank-cols { display: block !important; }
+    .bank-rate { font-size: 13px; }
+
+    /* 섹션 노트 */
+    .section-note { font-size: 10px; padding: 6px 10px; }
   }
 
-  @media (max-width: 480px) {
-    .nav-tab { padding: 9px 7px; font-size: 11px; }
-    .nav-tab .tab-icon { display: none; }
+  @media (max-width: 380px) {
+    .nav-tab { padding: 8px 5px; font-size: 10px; }
     .econ-cards-grid { grid-template-columns: repeat(2, 1fr); }
   }
 
-  @media (max-width: 768px) {
-    .row-item {
-      padding: 12px 12px;
-      border-bottom: 1px solid var(--border);
-    }
-    /* 환율 행: 이름+가격 한줄, 등락률 다음줄 */
-    .forex-cols {
-      grid-template-columns: unset !important;
-    }
-    .stocks-cols {
-      grid-template-columns: unset !important;
-    }
-  }
-
-  /* 모바일 등락률 라벨 */
-  .chg-label { display: none; font-size: 9px; color: var(--text3); margin-right: 2px; }
-  .pc-only { }
+  /* PC/모바일 레이아웃 전환 */
+  .mobile-row { display: none; }
+  .pc-table-row { display: grid; }
 
   @media (max-width: 768px) {
-    .chg-label { display: inline; }
-    .pc-only { display: none !important; }
-
-    /* 환율 모바일: 이름줄 + 가격줄 + 등락률줄 */
-    .forex-cols {
-      display: grid !important;
-      grid-template-columns: 1fr auto 24px !important;
-      row-gap: 6px;
-    }
-    .forex-cols > :nth-child(1) { display: none; }        /* 드래그핸들 */
-    .forex-cols > :nth-child(2) { grid-column: 1; }       /* 이름 */
-    .forex-cols > :nth-child(3) { grid-column: 2; grid-row: 1; text-align: right; } /* 가격 */
-    .forex-cols > :nth-child(4) { display: none; }        /* pc-only 단위 */
-    .forex-cols > :nth-child(5),
-    .forex-cols > :nth-child(6),
-    .forex-cols > :nth-child(7),
-    .forex-cols > :nth-child(8),
-    .forex-cols > :nth-child(9) {
-      grid-column: span 1;
-      grid-row: 2;
-    }
-    /* 등락률 5개를 2번째 행 전체에 펼침 */
-    .forex-cols { grid-template-rows: auto auto; }
-    .forex-chgs { display: flex; flex-wrap: wrap; gap: 4px; grid-column: 1 / -1; }
-
-    /* 주식도 동일 */
-    .stocks-cols {
-      display: grid !important;
-      grid-template-columns: 1fr auto 24px !important;
-      row-gap: 6px;
-    }
-    .stocks-cols > :nth-child(1) { display: none; }
-    .stocks-cols > :nth-child(2) { grid-column: 1; }
-    .stocks-cols > :nth-child(3) { grid-column: 2; grid-row: 1; text-align: right; }
-    .stocks-cols > :nth-child(4) { display: none; }
-  }
-
-  @media (max-width: 768px) {
-    /* 등락률 그룹: grid 벗어나서 flex wrap */
-    .forex-cols,
-    .stocks-cols {
-      display: flex !important;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 0;
-    }
-    .forex-cols > .row-name  { flex: 1 0 60%; }
-    .forex-cols > .row-price { flex: 0 0 auto; text-align: right; margin-left: auto; }
-    .forex-cols > .pc-only   { display: none !important; }
-    .forex-cols > .drag-handle { display: none !important; }
-    .forex-cols > .chg-group { 
-      flex: 0 0 100%;
-      display: flex !important;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 5px;
-    }
-    .forex-cols > div[style*="justify-content:flex-end"] { margin-left: auto; }
-
-    .stocks-cols > .row-name  { flex: 1 0 60%; }
-    .stocks-cols > .row-price { flex: 0 0 auto; text-align: right; margin-left: auto; }
-    .stocks-cols > .pc-only   { display: none !important; }
-    .stocks-cols > .drag-handle { display: none !important; }
-    .stocks-cols > .chg-group {
-      flex: 0 0 100%;
-      display: flex !important;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 5px;
-    }
-    .stocks-cols > div[style*="justify-content:flex-end"] { margin-left: auto; }
-
-    .col-chg { text-align: left; }
-    .chg-label { display: inline !important; }
+    .mobile-row { display: block; }
+    .pc-table-row { display: none !important; }
+    .row-table-head { display: none !important; }
   }
 </style>
 </head>
@@ -484,12 +423,13 @@ function chgClass(v) { return v==null?'neu':v>0?'up':v<0?'dn':'neu'; }
 /* ─── FOREX ─── */
 function renderForex(tickers, results) {
   const wrap = document.getElementById('forex-table-wrap');
+  // PC 헤더
   let html = `<div class="row-table">
     <div class="row-table-head">
       <div class="row-inner forex-cols">
         <div></div><div>종목</div>
         <div>현재가 <span style="font-size:10px;font-weight:400;color:var(--accent);background:#e8f0fe;padding:1px 5px;border-radius:3px;margin-left:2px">기준</span></div>
-        <div>단위</div>
+        <div class="pc-only">단위</div>
         <div class="col-chg">D-0<br><span style="font-weight:400;font-size:9px">오늘</span></div>
         <div class="col-chg">D-3<br><span style="font-weight:400;font-size:9px">3일 전→현재</span></div>
         <div class="col-chg">D-5<br><span style="font-weight:400;font-size:9px">5일 전→현재</span></div>
@@ -498,25 +438,58 @@ function renderForex(tickers, results) {
         <div></div>
       </div>
     </div>`;
-  tickers.forEach((t,i) => {
+
+  tickers.forEach((t, i) => {
     const d = results[i];
-    const isKRW = t.unit==='KRW';
-    const dec = isKRW?2:(t.symbol.includes('JPY')?2:4);
-    const price = d.error?'─':fmtNum(d.price,dec);
+    const isKRW = t.unit === 'KRW';
+    const dec = isKRW ? 2 : (t.symbol.includes('JPY') ? 2 : 4);
+    const price = d.error ? '─' : fmtNum(d.price, dec);
+    const unitStr = t.unit || '';
+
+    // 등락률 배열
+    const chgs = [
+      {label:'D-0',  val: d.change1d},
+      {label:'D-3',  val: d.change3d},
+      {label:'D-5',  val: d.change5d},
+      {label:'D-10', val: d.change10d},
+      {label:'D-20', val: d.change20d},
+    ];
+
     html += `<div class="row-item" draggable="true" data-section="forex" data-idx="${i}"
       ondragstart="onDragStart(event)" ondragover="onDragOver(event)" ondrop="onDrop(event)" ondragend="onDragEnd(event)">
-      <div class="forex-cols">
+
+      <!-- PC 레이아웃 -->
+      <div class="forex-cols pc-table-row">
         <div class="drag-handle">⠿</div>
-        <div class="row-name"><span class="row-name-main">${t.label}</span><span class="row-name-sub">${t.sub}</span></div>
-        <div class="row-price">${price} <span class="row-unit" style="font-size:11px;color:var(--text3)">${t.unit||''}</span></div>
-        <div class="row-unit pc-only">${t.unit||''}</div>
-        <div class="col-chg"><span class="chg-label">D-0</span>${fmtChg(d.change1d)}</div>
-        <div class="col-chg"><span class="chg-label">D-3</span>${fmtChg(d.change3d)}</div>
-        <div class="col-chg"><span class="chg-label">D-5</span>${fmtChg(d.change5d)}</div>
-        <div class="col-chg"><span class="chg-label">D-10</span>${fmtChg(d.change10d)}</div>
-        <div class="col-chg"><span class="chg-label">D-20</span>${fmtChg(d.change20d)}</div>
-        <div style="display:flex;justify-content:flex-end"><button class="remove-btn" onclick="confirmRemove('forex',${i})">✕</button></div>
+        <div class="row-name">
+          <span class="row-name-main">${t.label}</span>
+          <span class="row-name-sub">${t.sub}</span>
+        </div>
+        <div class="row-price">${price}</div>
+        <div class="pc-only row-unit">${unitStr}</div>
+        ${chgs.map(c => `<div class="col-chg">${fmtChg(c.val)}</div>`).join('')}
+        <div style="display:flex;justify-content:flex-end">
+          <button class="remove-btn" onclick="confirmRemove('forex',${i})">✕</button>
+        </div>
       </div>
+
+      <!-- 모바일 레이아웃 -->
+      <div class="mobile-row">
+        <div class="mobile-top">
+          <div class="row-name">
+            <span class="row-name-main">${t.label}</span>
+            <span class="row-name-sub">${t.sub}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="row-price">${price} <span style="font-size:11px;font-weight:400;color:var(--text3)">${unitStr}</span></span>
+            <button class="remove-btn" style="opacity:1;position:static" onclick="confirmRemove('forex',${i})">✕</button>
+          </div>
+        </div>
+        <div class="mobile-chgs">
+          ${chgs.map(c => `<div class="mobile-chg-item"><span class="mobile-chg-label">${c.label}</span>${fmtChg(c.val)}</div>`).join('')}
+        </div>
+      </div>
+
     </div>`;
   });
   wrap.innerHTML = html + '</div>';
@@ -536,7 +509,7 @@ function renderStocks(tickers, results) {
       <div class="row-inner stocks-cols">
         <div></div><div>종목</div>
         <div>현재가 <span style="font-size:10px;font-weight:400;color:var(--accent);background:#e8f0fe;padding:1px 5px;border-radius:3px;margin-left:2px">기준</span></div>
-        <div>단위</div>
+        <div class="pc-only">단위</div>
         <div class="col-chg">D-0<br><span style="font-weight:400;font-size:9px">오늘</span></div>
         <div class="col-chg">D-3<br><span style="font-weight:400;font-size:9px">3일 전→현재</span></div>
         <div class="col-chg">D-5<br><span style="font-weight:400;font-size:9px">5일 전→현재</span></div>
@@ -546,26 +519,58 @@ function renderStocks(tickers, results) {
         <div></div>
       </div>
     </div>`;
-  tickers.forEach((t,i) => {
+
+  tickers.forEach((t, i) => {
     const d = results[i];
-    const isKRW = t.unit==='KRW';
-    const dec = isKRW?2:(t.symbol.includes('JPY')?2:4);
-    const price = d.error?'─':fmtNum(d.price,dec);
+    const isKRW = t.unit === 'KRW';
+    const dec = isKRW ? 2 : (t.symbol.includes('JPY') ? 2 : 4);
+    const price = d.error ? '─' : fmtNum(d.price, dec);
+    const unitStr = t.unit || '';
+
+    const chgs = [
+      {label:'D-0',  val: d.change1d},
+      {label:'D-3',  val: d.change3d},
+      {label:'D-5',  val: d.change5d},
+      {label:'D-10', val: d.change10d},
+      {label:'D-15', val: d.change15d},
+      {label:'D-20', val: d.change20d},
+    ];
+
     html += `<div class="row-item" draggable="true" data-section="stocks" data-idx="${i}"
       ondragstart="onDragStart(event)" ondragover="onDragOver(event)" ondrop="onDrop(event)" ondragend="onDragEnd(event)">
-      <div class="stocks-cols">
+
+      <!-- PC 레이아웃 -->
+      <div class="stocks-cols pc-table-row">
         <div class="drag-handle">⠿</div>
-        <div class="row-name"><span class="row-name-main">${t.label}</span><span class="row-name-sub">${t.sub}</span></div>
-        <div class="row-price">${price} <span class="row-unit" style="font-size:11px;color:var(--text3)">${t.unit||''}</span></div>
-        <div class="row-unit pc-only">${t.unit||''}</div>
-        <div class="col-chg"><span class="chg-label">D-0</span>${fmtChg(d.change1d)}</div>
-        <div class="col-chg"><span class="chg-label">D-3</span>${fmtChg(d.change3d)}</div>
-        <div class="col-chg"><span class="chg-label">D-5</span>${fmtChg(d.change5d)}</div>
-        <div class="col-chg"><span class="chg-label">D-10</span>${fmtChg(d.change10d)}</div>
-        <div class="col-chg"><span class="chg-label">D-15</span>${fmtChg(d.change15d)}</div>
-        <div class="col-chg"><span class="chg-label">D-20</span>${fmtChg(d.change20d)}</div>
-        <div style="display:flex;justify-content:flex-end"><button class="remove-btn" onclick="confirmRemove('stocks',${i})">✕</button></div>
+        <div class="row-name">
+          <span class="row-name-main">${t.label}</span>
+          <span class="row-name-sub">${t.sub}</span>
+        </div>
+        <div class="row-price">${price}</div>
+        <div class="pc-only row-unit">${unitStr}</div>
+        ${chgs.map(c => `<div class="col-chg">${fmtChg(c.val)}</div>`).join('')}
+        <div style="display:flex;justify-content:flex-end">
+          <button class="remove-btn" onclick="confirmRemove('stocks',${i})">✕</button>
+        </div>
       </div>
+
+      <!-- 모바일 레이아웃 -->
+      <div class="mobile-row">
+        <div class="mobile-top">
+          <div class="row-name">
+            <span class="row-name-main">${t.label}</span>
+            <span class="row-name-sub">${t.sub}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="row-price">${price} <span style="font-size:11px;font-weight:400;color:var(--text3)">${unitStr}</span></span>
+            <button class="remove-btn" style="opacity:1;position:static" onclick="confirmRemove('stocks',${i})">✕</button>
+          </div>
+        </div>
+        <div class="mobile-chgs">
+          ${chgs.map(c => `<div class="mobile-chg-item"><span class="mobile-chg-label">${c.label}</span>${fmtChg(c.val)}</div>`).join('')}
+        </div>
+      </div>
+
     </div>`;
   });
   wrap.innerHTML = html + '</div>';
@@ -579,15 +584,18 @@ async function loadStocks() {
 
 /* ─── ECONOMY ─── */
 const ECON = {
-  // 순서: 기준금리 → M2 → 1년 → 3년 → 5년 → 10년 → 30년
+  // 미국: Workers → 재무부 공식 XML (BC_1YEAR~BC_30YEAR)
+  // 한국/중국: Yahoo Finance 실시간 + static
   us:[
-    {symbol:'__static', label:'기준금리',   type:'rate',        val:4.33,  unit:'%'},
-    {symbol:'__static', label:'M2 통화량',  type:'m2',          val:21.8,  unit:'조$',    dec:1},
-    {symbol:'__static', label:'1년 국채',   type:'bond_static', val:4.72,  unit:'%'},
-    {symbol:'^IRX',     label:'3개월 국채', type:'bond'},
-    {symbol:'^FVX',     label:'5년 국채',   type:'bond'},
-    {symbol:'^TNX',     label:'10년 국채',  type:'bond'},
-    {symbol:'^TYX',     label:'30년 국채',  type:'bond'},
+    {symbol:'__static',  label:'기준금리',  type:'rate', val:4.33, unit:'%'},
+    {symbol:'__static',  label:'M2 통화량', type:'m2',   val:21.8, unit:'조$', dec:1},
+    {symbol:'__treasury',label:'1년 국채',  type:'bond', field:'BC_1YEAR'},
+    {symbol:'__treasury',label:'2년 국채',  type:'bond', field:'BC_2YEAR'},
+    {symbol:'__treasury',label:'3년 국채',  type:'bond', field:'BC_3YEAR'},
+    {symbol:'__treasury',label:'5년 국채',  type:'bond', field:'BC_5YEAR'},
+    {symbol:'__treasury',label:'10년 국채', type:'bond', field:'BC_10YEAR'},
+    {symbol:'__treasury',label:'20년 국채', type:'bond', field:'BC_20YEAR'},
+    {symbol:'__treasury',label:'30년 국채', type:'bond', field:'BC_30YEAR'},
   ],
   kr:[
     {symbol:'__static',  label:'기준금리',  type:'rate', val:2.75, unit:'%'},
@@ -596,6 +604,7 @@ const ECON = {
     {symbol:'KR3YT=RR',  label:'3년 국채',  type:'bond'},
     {symbol:'KR5YT=RR',  label:'5년 국채',  type:'bond'},
     {symbol:'KR10YT=RR', label:'10년 국채', type:'bond'},
+    {symbol:'__static',  label:'20년 국채', type:'bond_static', val:3.35, unit:'%'},
     {symbol:'KR30YT=RR', label:'30년 국채', type:'bond'},
   ],
   cn:[
@@ -605,57 +614,88 @@ const ECON = {
     {symbol:'CN3YT=RR',  label:'3년 국채',  type:'bond'},
     {symbol:'CN5YT=RR',  label:'5년 국채',  type:'bond'},
     {symbol:'CN10YT=RR', label:'10년 국채', type:'bond'},
+    {symbol:'__static',  label:'20년 국채', type:'bond_static', val:2.50, unit:'%'},
     {symbol:'CN30YT=RR', label:'30년 국채', type:'bond'},
   ]
 };
 
 const BOND_FB = {
-  '^IRX':4.32,'^FVX':4.10,'^TNX':4.25,'^TYX':4.52,
+  '^FVX':4.29,'^TNX':4.55,'^TYX':5.01,
   'KR1YT=RR':2.90,'KR3YT=RR':2.95,'KR5YT=RR':3.00,'KR10YT=RR':3.10,'KR30YT=RR':3.20,
   'CN1YT=RR':1.50,'CN3YT=RR':1.65,'CN5YT=RR':1.75,'CN10YT=RR':1.90,'CN30YT=RR':2.10,
 };
 
-
 async function loadEconomy() {
+  // 미국 재무부 데이터를 Workers에서 먼저 가져옴
+  let usTreasury = null;
+  try {
+    const res = await fetch('https://fss-proxy.kim80091.workers.dev/?type=us_treasury');
+    if (res.ok) {
+      const json = await res.json();
+      if (!json.error) usTreasury = json;
+    }
+  } catch(e) { /* fallback to static */ }
+
   for (const c of ['us','kr','cn']) {
     const grid = document.getElementById(`econ-${c}-grid`);
     const items = ECON[c];
-    const fetches = items.map(it =>
-      it.symbol==='__static' ? Promise.resolve({static:true,val:it.val}) : fetchYahoo(it.symbol,'5d')
-    );
+
+    // fetch Yahoo items (skip __static and __treasury)
+    const fetches = items.map(it => {
+      if (it.symbol === '__static' || it.symbol === '__treasury')
+        return Promise.resolve({static:true, val:it.val});
+      return fetchYahoo(it.symbol,'5d');
+    });
     const results = await Promise.all(fetches);
-    grid.innerHTML='';
-    const yL=[], yV=[];
-    items.forEach((it,i) => {
+
+    grid.innerHTML = '';
+    const yL = [], yV = [];
+
+    items.forEach((it, i) => {
       const d = results[i];
-      let val, chgHtml='';
-      if (d.static) {
+      let val, chgHtml = '';
+
+      if (it.symbol === '__treasury') {
+        // 미국 재무부 실시간 데이터
+        val = usTreasury ? (usTreasury[it.field] ?? null) : null;
+        // fallback
+        const fbMap = {BC_1YEAR:3.85,BC_2YEAR:4.00,BC_3YEAR:4.10,BC_5YEAR:4.29,BC_10YEAR:4.55,BC_20YEAR:4.85,BC_30YEAR:5.01};
+        if (val == null) val = fbMap[it.field] ?? null;
+        if (val != null) { yL.push(it.label); yV.push(val); }
+      } else if (it.symbol === '__static') {
         val = it.val;
       } else {
-        val = (!d.error&&d.price) ? d.price : (BOND_FB[it.symbol]??null);
-        if (!d.error&&d.change1d!=null) {
-          const sign=d.change1d>0?'+':'', cls=d.change1d>0?'up':d.change1d<0?'dn':'neu';
-          chgHtml=`<div class="econ-card-chg ${cls}">${sign}${d.change1d.toFixed(2)}%p</div>`;
+        val = (!d.error && d.price) ? d.price : (BOND_FB[it.symbol] ?? null);
+        if (!d.error && d.change1d != null) {
+          const sign = d.change1d>0?'+':'', cls = d.change1d>0?'up':d.change1d<0?'dn':'neu';
+          chgHtml = `<div class="econ-card-chg ${cls}">${sign}${d.change1d.toFixed(2)}%p</div>`;
         }
-        if (it.type==='bond') { yL.push(it.label); yV.push(val??null); }
+        if (it.type === 'bond') { yL.push(it.label); yV.push(val ?? null); }
       }
-      if (it.type==='bond_static') { yL.push(it.label); yV.push(val); }
+      if (it.type === 'bond_static') { yL.push(it.label); yV.push(val); }
 
-      // 값 포맷: M2는 소수점 1자리, 나머지는 2자리
       const dec = it.dec ?? 2;
       const unitStr = it.unit || '%';
-      // 단위를 값 바로 옆에 붙임
-      const valStr = val!=null ? (fmtNum(val, dec) + unitStr) : '─';
+      const valStr = val != null ? (fmtNum(val, dec) + unitStr) : '─';
+
+      // 데이터 출처 표시 (미국 재무부 실시간이면 날짜 표시)
+      const srcHtml = (it.symbol === '__treasury' && usTreasury?.date)
+        ? `<div style="font-size:9px;color:var(--text3);margin-top:2px">${usTreasury.date}</div>`
+        : '';
 
       grid.innerHTML += `<div class="econ-card">
         <div class="econ-card-label">${it.label}</div>
         <div class="econ-card-value" style="font-size:15px">${valStr}</div>
-        ${chgHtml}
+        ${chgHtml}${srcHtml}
       </div>`;
     });
-    // deduplicate yL/yV
-    const seen=new Set(), cleanL=[], cleanV=[];
-    yL.forEach((l,i)=>{if(!seen.has(l)&&yV[i]!=null){seen.add(l);cleanL.push(l);cleanV.push(yV[i]);}});
+
+    // yield curve — null 제거
+    const cleanL=[], cleanV=[];
+    const seen = new Set();
+    yL.forEach((l,i) => {
+      if (!seen.has(l) && yV[i] != null) { seen.add(l); cleanL.push(l); cleanV.push(yV[i]); }
+    });
     drawYieldCurve(c, cleanL, cleanV);
   }
 }
