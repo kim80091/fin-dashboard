@@ -54,7 +54,7 @@
   .row-item.dragging{opacity:.4;}
   .row-item.drag-over{border-top:2px solid var(--accent);}
   /* forex cols */
-  .forex-cols{display:grid;grid-template-columns:40px 160px 1fr 60px 88px 88px 88px 88px 32px;align-items:center;gap:0;}
+  .forex-cols{display:grid;grid-template-columns:40px 160px 1fr 60px 80px 80px 80px 80px 80px 32px;align-items:center;gap:0;}
   .forex-cols>div{padding:0 5px;}
   /* stocks cols */
   .stocks-cols{display:grid;grid-template-columns:40px 160px 1fr 60px 80px 80px 80px 80px 80px 80px 32px;align-items:center;gap:0;}
@@ -312,6 +312,7 @@ function renderForex(tickers, results) {
         <div class="col-chg">D-3<br><span style="font-weight:400;font-size:9px">3일 전→현재</span></div>
         <div class="col-chg">D-5<br><span style="font-weight:400;font-size:9px">5일 전→현재</span></div>
         <div class="col-chg">D-10<br><span style="font-weight:400;font-size:9px">10일 전→현재</span></div>
+        <div class="col-chg">D-20<br><span style="font-weight:400;font-size:9px">20일 전→현재</span></div>
         <div></div>
       </div>
     </div>`;
@@ -331,6 +332,7 @@ function renderForex(tickers, results) {
         <div class="col-chg">${fmtChg(d.change3d)}</div>
         <div class="col-chg">${fmtChg(d.change5d)}</div>
         <div class="col-chg">${fmtChg(d.change10d)}</div>
+        <div class="col-chg">${fmtChg(d.change20d)}</div>
         <div style="display:flex;justify-content:flex-end"><button class="remove-btn" onclick="confirmRemove('forex',${i})">✕</button></div>
       </div>
     </div>`;
@@ -340,7 +342,7 @@ function renderForex(tickers, results) {
 
 async function loadForex() {
   document.getElementById('forex-table-wrap').innerHTML='<div class="loading-state"><div class="spinner"></div> 로딩 중...</div>';
-  const results = await Promise.all(state.forex.tickers.map(t=>fetchYahoo(t.symbol,'20d')));
+  const results = await Promise.all(state.forex.tickers.map(t=>fetchYahoo(t.symbol,'30d')));
   renderForex(state.forex.tickers, results);
 }
 
