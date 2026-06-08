@@ -601,28 +601,28 @@ const ECON = {
     {symbol:'__static',  label:'기준금리',  type:'rate', val:2.75, unit:'%'},
     {symbol:'__static',  label:'M2 통화량', type:'m2',   val:4082, unit:'조원', dec:1},
     {symbol:'KR1YT=RR',  label:'1년 국채',  type:'bond'},
+    {symbol:'KR2YT=RR',  label:'2년 국채',  type:'bond'},
     {symbol:'KR3YT=RR',  label:'3년 국채',  type:'bond'},
     {symbol:'KR5YT=RR',  label:'5년 국채',  type:'bond'},
     {symbol:'KR10YT=RR', label:'10년 국채', type:'bond'},
-    {symbol:'__static',  label:'20년 국채', type:'bond_static', val:3.35, unit:'%'},
     {symbol:'KR30YT=RR', label:'30년 국채', type:'bond'},
   ],
   cn:[
     {symbol:'__static',  label:'기준금리',  type:'rate', val:3.10, unit:'%'},
     {symbol:'__static',  label:'M2 통화량', type:'m2',   val:326,  unit:'조위안', dec:1},
     {symbol:'CN1YT=RR',  label:'1년 국채',  type:'bond'},
+    {symbol:'CN2YT=RR',  label:'2년 국채',  type:'bond'},
     {symbol:'CN3YT=RR',  label:'3년 국채',  type:'bond'},
     {symbol:'CN5YT=RR',  label:'5년 국채',  type:'bond'},
     {symbol:'CN10YT=RR', label:'10년 국채', type:'bond'},
-    {symbol:'__static',  label:'20년 국채', type:'bond_static', val:2.50, unit:'%'},
     {symbol:'CN30YT=RR', label:'30년 국채', type:'bond'},
   ]
 };
 
 const BOND_FB = {
   '^FVX':4.29,'^TNX':4.55,'^TYX':5.01,
-  'KR1YT=RR':2.90,'KR3YT=RR':2.95,'KR5YT=RR':3.00,'KR10YT=RR':3.10,'KR30YT=RR':3.20,
-  'CN1YT=RR':1.50,'CN3YT=RR':1.65,'CN5YT=RR':1.75,'CN10YT=RR':1.90,'CN30YT=RR':2.10,
+  'KR1YT=RR':2.90,'KR2YT=RR':2.93,'KR3YT=RR':2.95,'KR5YT=RR':3.00,'KR10YT=RR':3.10,'KR30YT=RR':3.20,
+  'CN1YT=RR':1.50,'CN2YT=RR':1.58,'CN3YT=RR':1.65,'CN5YT=RR':1.75,'CN10YT=RR':1.90,'CN30YT=RR':2.10,
 };
 
 async function loadEconomy() {
