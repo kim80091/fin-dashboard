@@ -824,13 +824,13 @@ function drawCandleChart(canvas,ohlc,isKRW,id) {
   const UP_WICK='#dc262655', DN_WICK='#2563eb55';
   const candlePlugin={
     id:'cstick',
-    beforeDatasetsDraw(chart) {
+    afterDatasetsDraw(chart) {
       const {ctx,scales:{x,y}}=chart;
       ctx.save();
       ohlc.forEach((c,i)=>{
         const isUp=c.c>=c.o;
         const xPos=x.getPixelForValue(i);
-        const bw=Math.max((x.width/ohlc.length)*.55,3);
+        const bw=Math.max((x.width/ohlc.length)*.50,3);
         const yH=y.getPixelForValue(c.h), yL=y.getPixelForValue(c.l);
         const yO=y.getPixelForValue(c.o), yC=y.getPixelForValue(c.c);
         const yTop=Math.min(yO,yC), yBot=Math.max(yO,yC);
@@ -846,8 +846,9 @@ function drawCandleChart(canvas,ohlc,isKRW,id) {
       ctx.restore();
     }
   };
-  const allH=ohlc.map(c=>c.h),allL=ohlc.map(c=>c.l);
-  const yMin=Math.min(...allL),yMax=Math.max(...allH),yPad=(yMax-yMin)*.20;
+  // 모든 OHLC 값 포함해서 Y축 범위 계산 (장중 미완성 봉 포함)
+  const allVals = ohlc.flatMap(c=>[c.o,c.h,c.l,c.c]).filter(v=>v!=null&&!isNaN(v));
+  const yMin=Math.min(...allVals),yMax=Math.max(...allVals),yPad=(yMax-yMin)*.25;
   charts[id]=new Chart(canvas,{
     type:'line',
     data:{labels,datasets:[{data:ohlc.map(c=>(c.h+c.l)/2),borderColor:'transparent',pointRadius:0,borderWidth:0}]},
@@ -862,8 +863,10 @@ function drawCandleChart(canvas,ohlc,isKRW,id) {
           return [`시가: ${fmt(c.o)}`,`고가: ${fmt(c.h)}`,`저가: ${fmt(c.l)}`,`종가: ${fmt(c.c)}`];
         }
       }}},
+      layout:{padding:{top:10,bottom:10,left:4,right:16}},
       scales:{
-        x:{grid:{display:false},ticks:{color:'#9ca3af',font:{size:9},maxTicksLimit:8}},
+        x:{grid:{display:false},ticks:{color:'#9ca3af',font:{size:9},maxTicksLimit:8},
+          afterFit(scale){ scale.paddingRight = 20; }},
         y:{min:yMin-yPad,max:yMax+yPad,grid:{color:'#e5e7eb'},ticks:{color:'#9ca3af',font:{size:9},maxTicksLimit:5,
           callback:v=>isKRW?(v>=100000000?(v/100000000).toFixed(1)+'억':(v/10000).toFixed(0)+'만'):'$'+fmtNum(v,0)
         }}
