@@ -1006,6 +1006,35 @@ function onDrop(e){
 }
 function onDragEnd(e){e.currentTarget.classList.remove('dragging');document.querySelectorAll('.row-item.drag-over').forEach(el=>el.classList.remove('drag-over'));dragSrcIdx=null;dragSection=null;}
 
+/* ─── 암호화폐 카드 드래그 ─── */
+let cryptoDragIdx = null;
+function onCryptoDragStart(e) {
+  cryptoDragIdx = parseInt(e.currentTarget.dataset.idx);
+  e.currentTarget.style.opacity = '0.4';
+  e.dataTransfer.effectAllowed = 'move';
+}
+function onCryptoDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.crypto-card').forEach(el => el.style.outline = '');
+  e.currentTarget.style.outline = '2px solid var(--accent)';
+}
+function onCryptoDrop(e) {
+  e.preventDefault();
+  const targetIdx = parseInt(e.currentTarget.dataset.idx);
+  if (cryptoDragIdx === null || cryptoDragIdx === targetIdx) return;
+  const arr = state.crypto.tickers;
+  const [moved] = arr.splice(cryptoDragIdx, 1);
+  arr.splice(targetIdx, 0, moved);
+  saveTickers('crypto');
+  loadCrypto();
+}
+function onCryptoDragEnd(e) {
+  e.currentTarget.style.opacity = '';
+  document.querySelectorAll('.crypto-card').forEach(el => el.style.outline = '');
+  cryptoDragIdx = null;
+}
+
 /* ─── MODAL ─── */
 function confirmAdd(section) {
   const val=document.getElementById(`${section}-input`).value.trim().toUpperCase();
