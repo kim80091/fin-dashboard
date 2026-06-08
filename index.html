@@ -199,16 +199,27 @@
   <!-- BANKING -->
   <section class="section" id="section-banking">
     <div class="section-header"><div class="section-title">국내 은행 금리 TOP 3</div></div>
-    <div class="section-note">📊 금리 공시 기준 (12개월 정기예금). M-0=현재 / M-3·M-6·M-12=각 시점의 12개월 금리.</div>
+    <div class="section-note">📊 금융감독원 금융상품한눈에 실시간 기준 (12개월 정기예금). M-0=현재 / M-3·M-6·M-12=각 시점의 12개월 금리.</div>
     <div id="bank-loading" class="loading-state"><div class="spinner"></div> 로딩 중...</div>
-    <div id="bank-deposit-section" style="display:none">
-      <div class="econ-country-title" style="margin-bottom:10px">💰 예금 금리 TOP 3 (12개월, 세전)</div>
+
+    <!-- 전체 (1+2금융권) -->
+    <div id="bank-all-section" style="display:none">
+      <div class="econ-country-title" style="margin-bottom:10px">🏦 전체 (1+2금융권) 예금 TOP 3 <span style="font-size:11px;font-weight:400;color:var(--text3)">12개월 최고금리 기준</span></div>
       <div id="bank-deposit-wrap"></div>
-    </div>
-    <div class="divider"></div>
-    <div id="bank-loan-section" style="display:none">
-      <div class="econ-country-title" style="margin-bottom:10px">🏠 대출 금리 TOP 3 (주담대 최저)</div>
+      <div style="height:16px"></div>
+      <div class="econ-country-title" style="margin-bottom:10px">🏠 전체 (1+2금융권) 대출 TOP 3 <span style="font-size:11px;font-weight:400;color:var(--text3)">주담대 최저금리 기준</span></div>
       <div id="bank-loan-wrap"></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 1금융권 -->
+    <div id="bank-1st-section" style="display:none">
+      <div class="econ-country-title" style="margin-bottom:10px">🏛️ 1금융권 (은행권) 예금 TOP 3 <span style="font-size:11px;font-weight:400;color:var(--text3)">12개월 최고금리 기준</span></div>
+      <div id="bank-deposit-1st-wrap"></div>
+      <div style="height:16px"></div>
+      <div class="econ-country-title" style="margin-bottom:10px">🏠 1금융권 (은행권) 대출 TOP 3 <span style="font-size:11px;font-weight:400;color:var(--text3)">주담대 최저금리 기준</span></div>
+      <div id="bank-loan-1st-wrap"></div>
     </div>
   </section>
 </main>
@@ -513,18 +524,30 @@ async function loadCrypto() {
   state.crypto.tickers.forEach((t,i)=>renderCryptoCard(grid,t,results[i],i));
 }
 
-async function fetchUpbitCandles(market,count=30) {
-  try {
-    const res=await fetch(`https://api.upbit.com/v1/candles/days?market=${market}&count=${count}`);
-    const candles=await res.json();
-    const data=candles.slice().reverse();
-    const ohlc=data.map(c=>({t:c.candle_date_time_kst?.slice(0,10)||'',o:c.opening_price,h:c.high_price,l:c.low_price,c:c.trade_price}));
-    const closes=ohlc.map(x=>x.c),n=closes.length,price=closes[n-1];
-    return {ok:true,ohlc,price,
-      change1d:n>=2?pct(closes[n-1],closes[n-2]):null,
-      change3d:n>=4?pct(closes[n-1],closes[n-4]):null,
-      change5d:n>=6?pct(closes[n-1],closes[n-6]):null};
-  } catch(e) { return {ok:false,error:e.message}; }
+async function fetchUpbitCandles(market, count=30) {
+  const directUrl = `https://api.upbit.com/v1/candles/days?market=${encodeURIComponent(market)}&count=${count}`;
+  const proxyUrl  = CORS + encodeURIComponent(directUrl);
+  let candles = null;
+  for (const url of [directUrl, proxyUrl]) {
+    try {
+      const res = await fetch(url, { headers: { Accept: 'application/json' } });
+      if (!res.ok) continue;
+      const json = await res.json();
+      if (Array.isArray(json) && json.length > 0) { candles = json; break; }
+    } catch(e) { continue; }
+  }
+  if (!candles) return { ok: false, error: '업비트 API 응답 없음' };
+  const data = candles.slice().reverse();
+  const ohlc = data.map(c => ({
+    t: (c.candle_date_time_kst || c.candle_date_time_utc || '').slice(0,10),
+    o: c.opening_price, h: c.high_price, l: c.low_price, c: c.trade_price
+  }));
+  const closes = ohlc.map(x => x.c), n = closes.length, price = closes[n-1];
+  return { ok: true, ohlc, price,
+    change1d: n>=2 ? pct(closes[n-1],closes[n-2]) : null,
+    change3d: n>=4 ? pct(closes[n-1],closes[n-4]) : null,
+    change5d: n>=6 ? pct(closes[n-1],closes[n-6]) : null,
+  };
 }
 
 async function fetchBinanceCandles(sym,limit=30) {
@@ -561,7 +584,7 @@ function renderCryptoCard(grid,ticker,d,idx) {
       <div class="crypto-price" style="color:${priceColor}">${priceStr}</div>
     </div>
     <div class="crypto-changes">${fC(c1,'D-0')} ${fC(c3,'D-3')} ${fC(c5,'D-5')}</div>
-    <div style="height:185px;position:relative"><canvas id="${cid}"></canvas></div>`;
+    <div style="height:260px;position:relative"><canvas id="${cid}"></canvas></div>`;
   grid.appendChild(div);
   setTimeout(()=>{
     const canvas=document.getElementById(cid);
@@ -600,7 +623,7 @@ function drawCandleChart(canvas,ohlc,isKRW,id) {
     }
   };
   const allH=ohlc.map(c=>c.h),allL=ohlc.map(c=>c.l);
-  const yMin=Math.min(...allL),yMax=Math.max(...allH),yPad=(yMax-yMin)*.05;
+  const yMin=Math.min(...allL),yMax=Math.max(...allH),yPad=(yMax-yMin)*.15;
   charts[id]=new Chart(canvas,{
     type:'line',
     data:{labels,datasets:[{data:ohlc.map(c=>(c.h+c.l)/2),borderColor:'transparent',pointRadius:0,borderWidth:0}]},
@@ -632,8 +655,8 @@ function drawCandleChart(canvas,ohlc,isKRW,id) {
 */
 const FSS_PROXY = 'https://fss-proxy.kim80091.workers.dev';
 
-function renderBankTable(type, data) {
-  const wrap = document.getElementById(`bank-${type}-wrap`);
+function renderBankTable(type, data, wrapId) {
+  const wrap = document.getElementById(wrapId || `bank-${type}-wrap`);
   const rankColors = ['#0066ff','#059669','#e07b00'];
 
   let html = `<div class="row-table">
@@ -689,49 +712,50 @@ function renderBankTable(type, data) {
 
 async function loadBanking() {
   document.getElementById('bank-loading').style.display='flex';
-  document.getElementById('bank-deposit-section').style.display='none';
-  document.getElementById('bank-loan-section').style.display='none';
+  document.getElementById('bank-all-section').style.display='none';
+  document.getElementById('bank-1st-section').style.display='none';
 
   try {
-    // FSS API 실시간 조회
-    const [depRes, loanRes] = await Promise.all([
+    // 4가지 동시 조회: 전체예금, 전체대출, 1금융예금, 1금융대출
+    const [depRes, loanRes, dep1Res, loan1Res] = await Promise.all([
       fetch(`${FSS_PROXY}/?type=deposit`),
       fetch(`${FSS_PROXY}/?type=loan`),
+      fetch(`${FSS_PROXY}/?type=deposit_1st`),
+      fetch(`${FSS_PROXY}/?type=loan_1st`),
     ]);
 
-    if (!depRes.ok || !loanRes.ok) throw new Error('API 응답 오류');
+    const toMap = async (res, label) => {
+      if (!res.ok) throw new Error(`${label} API 오류 ${res.status}`);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      return data.map(d => ({
+        rank: d.rank, bank: d.bank, product: d.product,
+        m0: d.rate, baseRate: d.baseRate ?? null,
+        m3: null, m6: null, m12: null
+      }));
+    };
 
-    const depData  = await depRes.json();
-    const loanData = await loanRes.json();
+    const [depData, loanData, dep1Data, loan1Data] = await Promise.all([
+      toMap(depRes,  '전체예금'),
+      toMap(loanRes, '전체대출'),
+      toMap(dep1Res, '1금융예금'),
+      toMap(loan1Res,'1금융대출'),
+    ]);
 
-    if (depData.error || loanData.error) throw new Error(depData.error || loanData.error);
-
-    // Workers 응답: [{rank, bank, product, rate, baseRate}]
-    // rate → m0 으로 매핑 (과거 데이터는 현재 Workers 미지원)
-    const mapDeposit = depData.map(d => ({
-      rank: d.rank, bank: d.bank, product: d.product,
-      m0: d.rate, baseRate: d.baseRate,
-      m3: null, m6: null, m12: null
-    }));
-    const mapLoan = loanData.map(d => ({
-      rank: d.rank, bank: d.bank, product: d.product,
-      m0: d.rate,
-      m3: null, m6: null, m12: null
-    }));
-
-    renderBankTable('deposit', mapDeposit);
-    renderBankTable('loan', mapLoan);
+    renderBankTable('deposit',     depData,  'bank-deposit-wrap');
+    renderBankTable('loan',        loanData, 'bank-loan-wrap');
+    renderBankTable('deposit_1st', dep1Data, 'bank-deposit-1st-wrap');
+    renderBankTable('loan_1st',    loan1Data,'bank-loan-1st-wrap');
 
   } catch(e) {
-    // FSS 실패 시 안내 메시지
-    document.getElementById('bank-deposit-wrap').innerHTML =
-      `<div style="padding:16px;color:var(--text3);font-size:12px">⚠️ 금리 데이터 로딩 실패: ${e.message}</div>`;
-    document.getElementById('bank-loan-wrap').innerHTML = '';
+    const msg = `<div style="padding:16px;color:var(--text3);font-size:12px">⚠️ 금리 데이터 로딩 실패: ${e.message}</div>`;
+    ['bank-deposit-wrap','bank-loan-wrap','bank-deposit-1st-wrap','bank-loan-1st-wrap']
+      .forEach(id => { document.getElementById(id).innerHTML = msg; });
   }
 
   document.getElementById('bank-loading').style.display='none';
-  document.getElementById('bank-deposit-section').style.display='block';
-  document.getElementById('bank-loan-section').style.display='block';
+  document.getElementById('bank-all-section').style.display='block';
+  document.getElementById('bank-1st-section').style.display='block';
 }
 
 /* ─── DRAG & DROP ─── */
