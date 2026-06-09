@@ -1154,10 +1154,23 @@ async function modalConfirm(){
   closeModal(); if(!pendingAction)return;
   const{type,section,symbol,idx}=pendingAction;
   if (type==='add'){
-    const isUpbit=section==='crypto'&&(symbol.startsWith('KRW-')||symbol.startsWith('USDT-'));
-    state[section].tickers.push({symbol,label:symbol,sub:symbol,unit:'',upbit:isUpbit});
-    saveTickers(section);await reloadSection(section);
-    const inp=document.getElementById(`${section}-input`);if(inp)inp.value='';
+    const isUpbit = section==='crypto' && (symbol.startsWith('KRW-')||symbol.startsWith('USDT-'));
+    // 주식/환율 추가 시 unit 자동 추정
+    let unit = '';
+    if (section === 'stocks') {
+      if (symbol.endsWith('.KS') || symbol.endsWith('.KQ') || symbol === '^KS11' || symbol === '^KQ11') unit = 'KRW';
+      else if (symbol.endsWith('.T')  || symbol === '^N225') unit = 'JPY';
+      else if (symbol.endsWith('.SS') || symbol.endsWith('.SZ')) unit = 'CNY';
+      else unit = 'USD';
+    } else if (section === 'forex') {
+      if (symbol.includes('KRW')) unit = 'KRW';
+      else if (symbol.includes('JPY')) unit = 'JPY';
+      else if (symbol.includes('CNY')) unit = 'CNY';
+      else unit = 'USD';
+    }
+    state[section].tickers.push({symbol, label:symbol, sub:symbol, unit, upbit:isUpbit});
+    saveTickers(section); await reloadSection(section);
+    const inp=document.getElementById(`${section}-input`); if(inp) inp.value='';
   } else {
     state[section].tickers.splice(idx,1);saveTickers(section);await reloadSection(section);
   }
