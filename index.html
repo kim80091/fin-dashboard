@@ -281,16 +281,19 @@
       <div class="econ-country-title">🇺🇸 미국 (United States)</div>
       <div class="econ-cards-grid" id="econ-us-grid"><div class="loading-state"><div class="spinner"></div></div></div>
       <div class="chart-section"><div class="chart-title">미국 수익률 곡선 (Yield Curve)</div><div class="chart-container"><canvas id="chart-us-yield"></canvas></div></div>
+    <div class="chart-section"><div class="chart-title">미국 M2 통화량 추이 <span style="font-size:10px;color:var(--text3);font-weight:400">(분기별, 조$)</span></div><div class="chart-container" style="height:140px"><canvas id="chart-m2-us"></canvas></div></div>
     </div>
     <div class="econ-country">
       <div class="econ-country-title">🇰🇷 한국 (Korea)</div>
       <div class="econ-cards-grid" id="econ-kr-grid"><div class="loading-state"><div class="spinner"></div></div></div>
       <div class="chart-section"><div class="chart-title">한국 수익률 곡선</div><div class="chart-container"><canvas id="chart-kr-yield"></canvas></div></div>
+    <div class="chart-section"><div class="chart-title">한국 M2 통화량 추이 <span style="font-size:10px;color:var(--text3);font-weight:400">(분기별, 조원)</span></div><div class="chart-container" style="height:140px"><canvas id="chart-m2-kr"></canvas></div></div>
     </div>
     <div class="econ-country">
       <div class="econ-country-title">🇨🇳 중국 (China)</div>
       <div class="econ-cards-grid" id="econ-cn-grid"><div class="loading-state"><div class="spinner"></div></div></div>
       <div class="chart-section"><div class="chart-title">중국 수익률 곡선</div><div class="chart-container"><canvas id="chart-cn-yield"></canvas></div></div>
+    <div class="chart-section"><div class="chart-title">중국 M2 통화량 추이 <span style="font-size:10px;color:var(--text3);font-weight:400">(분기별, 조위안)</span></div><div class="chart-container" style="height:140px"><canvas id="chart-m2-cn"></canvas></div></div>
     </div>
   </section>
   <!-- CRYPTO -->
@@ -395,6 +398,14 @@ async function fetchYahoo(symbol, range='30d') {
     const closes = raw.filter(c => c != null);
     const price = meta.regularMarketPrice ?? meta.previousClose;
     const n = closes.length;
+    // 타임스탬프 → 날짜 문자열 배열
+    const timestamps = result.timestamp || [];
+    const allCloses  = result.indicators?.quote?.[0]?.close || [];
+    const validDates = timestamps.filter((_,i) => allCloses[i] != null)
+      .map(ts => {
+        const d = new Date(ts * 1000);
+        return `${d.getMonth()+1}/${d.getDate()}`;
+      });
     return {
       price, currency: meta.currency,
       change1d:  n>=2  ? pct(closes[n-1],closes[n-2])  : null,
@@ -403,6 +414,7 @@ async function fetchYahoo(symbol, range='30d') {
       change10d: n>=11 ? pct(closes[n-1],closes[n-11]) : null,
       change15d: n>=16 ? pct(closes[n-1],closes[n-16]) : null,
       change20d: n>=21 ? pct(closes[n-1],closes[n-21]) : null,
+      dates: validDates,
       closes, error:false
     };
   } catch(e) { return {error:true, msg:e.message}; }
@@ -413,10 +425,11 @@ function fmtNum(n, dec=2) {
   if (n==null||isNaN(n)) return '─';
   return n.toLocaleString('ko-KR',{minimumFractionDigits:dec,maximumFractionDigits:dec});
 }
-function fmtChg(v) {
+function fmtChg(v, date) {
   if (v==null||isNaN(v)) return '<span class="chg neu">─</span>';
   const sign=v>0?'+':'', cls=v>0?'up':v<0?'dn':'neu';
-  return `<span class="chg ${cls}">${sign}${v.toFixed(2)}%</span>`;
+  const dateLbl = date ? `<span style="font-size:9px;color:var(--text3);font-weight:400;margin-left:2px">(${date})</span>` : '';
+  return `<span class="chg ${cls}">${sign}${v.toFixed(2)}%${dateLbl}</span>`;
 }
 function chgClass(v) { return v==null?'neu':v>0?'up':v<0?'dn':'neu'; }
 
@@ -446,13 +459,15 @@ function renderForex(tickers, results) {
     const price = d.error ? '─' : fmtNum(d.price, dec);
     const unitStr = t.unit || '';
 
-    // 등락률 배열
+    // 등락률 배열 (날짜 포함)
+    const dn = d.dates || [];
+    const nl = dn.length;
     const chgs = [
-      {label:'D-0',  val: d.change1d},
-      {label:'D-3',  val: d.change3d},
-      {label:'D-5',  val: d.change5d},
-      {label:'D-10', val: d.change10d},
-      {label:'D-20', val: d.change20d},
+      {label:'D-0',  val: d.change1d,  date: dn[nl-1]},
+      {label:'D-3',  val: d.change3d,  date: dn[nl-4]},
+      {label:'D-5',  val: d.change5d,  date: dn[nl-6]},
+      {label:'D-10', val: d.change10d, date: dn[nl-11]},
+      {label:'D-20', val: d.change20d, date: dn[nl-21]},
     ];
 
     html += `<div class="row-item" draggable="true" data-section="forex" data-idx="${i}"
@@ -467,7 +482,7 @@ function renderForex(tickers, results) {
         </div>
         <div class="row-price">${price}</div>
         <div class="pc-only row-unit">${unitStr}</div>
-        ${chgs.map(c => `<div class="col-chg">${fmtChg(c.val)}</div>`).join('')}
+        ${chgs.map(c => `<div class="col-chg">${fmtChg(c.val, c.date)}</div>`).join('')}
         <div style="display:flex;justify-content:flex-end">
           <button class="remove-btn" onclick="confirmRemove('forex',${i})">✕</button>
         </div>
@@ -486,7 +501,7 @@ function renderForex(tickers, results) {
           </div>
         </div>
         <div class="mobile-chgs">
-          ${chgs.map(c => `<div class="mobile-chg-item"><span class="mobile-chg-label">${c.label}</span>${fmtChg(c.val)}</div>`).join('')}
+          ${chgs.map(c => `<div class="mobile-chg-item"><span class="mobile-chg-label">${c.label}</span>${fmtChg(c.val, c.date)}</div>`).join('')}
         </div>
       </div>
 
@@ -527,13 +542,14 @@ function renderStocks(tickers, results) {
     const price = d.error ? '─' : fmtNum(d.price, dec);
     const unitStr = t.unit || '';
 
+    const dn = d.dates || [], nl = dn.length;
     const chgs = [
-      {label:'D-0',  val: d.change1d},
-      {label:'D-3',  val: d.change3d},
-      {label:'D-5',  val: d.change5d},
-      {label:'D-10', val: d.change10d},
-      {label:'D-15', val: d.change15d},
-      {label:'D-20', val: d.change20d},
+      {label:'D-0',  val: d.change1d,  date: dn[nl-1]},
+      {label:'D-3',  val: d.change3d,  date: dn[nl-4]},
+      {label:'D-5',  val: d.change5d,  date: dn[nl-6]},
+      {label:'D-10', val: d.change10d, date: dn[nl-11]},
+      {label:'D-15', val: d.change15d, date: dn[nl-16]},
+      {label:'D-20', val: d.change20d, date: dn[nl-21]},
     ];
 
     html += `<div class="row-item" draggable="true" data-section="stocks" data-idx="${i}"
@@ -548,7 +564,7 @@ function renderStocks(tickers, results) {
         </div>
         <div class="row-price">${price}</div>
         <div class="pc-only row-unit">${unitStr}</div>
-        ${chgs.map(c => `<div class="col-chg">${fmtChg(c.val)}</div>`).join('')}
+        ${chgs.map(c => `<div class="col-chg">${fmtChg(c.val, c.date)}</div>`).join('')}
         <div style="display:flex;justify-content:flex-end">
           <button class="remove-btn" onclick="confirmRemove('stocks',${i})">✕</button>
         </div>
@@ -567,7 +583,7 @@ function renderStocks(tickers, results) {
           </div>
         </div>
         <div class="mobile-chgs">
-          ${chgs.map(c => `<div class="mobile-chg-item"><span class="mobile-chg-label">${c.label}</span>${fmtChg(c.val)}</div>`).join('')}
+          ${chgs.map(c => `<div class="mobile-chg-item"><span class="mobile-chg-label">${c.label}</span>${fmtChg(c.val, c.date)}</div>`).join('')}
         </div>
       </div>
 
@@ -626,7 +642,8 @@ const BOND_FB = {
 };
 
 async function loadEconomy() {
-  // 미국 재무부 데이터를 Workers에서 먼저 가져옴
+  // M2 + 미국 재무부 데이터 병렬 로딩
+  await loadM2Data();
   let usTreasury = null;
   try {
     const res = await fetch('https://fss-proxy.kim80091.workers.dev/?type=us_treasury');
@@ -697,8 +714,92 @@ async function loadEconomy() {
       if (!seen.has(l) && yV[i] != null) { seen.add(l); cleanL.push(l); cleanV.push(yV[i]); }
     });
     drawYieldCurve(c, cleanL, cleanV);
+    drawM2Chart(c);
   }
 }
+
+
+/* ─── M2 통화량 — FRED 실시간 데이터 ─── */
+let m2Data = null; // 캐시
+
+async function loadM2Data() {
+  try {
+    const res = await fetch(`${WORKER}/?type=fred_m2`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    if (json.error) throw new Error(json.error);
+    m2Data = json;
+  } catch(e) {
+    console.warn('FRED M2 로딩 실패, 정적 데이터 사용:', e.message);
+    // fallback 정적 데이터
+    m2Data = {
+      us: { unit:'조$',    data:[{d:'2022-01',v:21.6},{d:'2022-07',v:21.6},{d:'2023-01',v:21.0},{d:'2023-07',v:20.7},{d:'2024-01',v:20.9},{d:'2024-07',v:21.2},{d:'2025-01',v:21.5},{d:'2025-04',v:21.8}] },
+      kr: { unit:'조원',   data:[{d:'2022-01',v:3700},{d:'2022-07',v:3780},{d:'2023-01',v:3820},{d:'2023-07',v:3880},{d:'2024-01',v:3930},{d:'2024-07',v:4010},{d:'2025-01',v:4055},{d:'2025-04',v:4082}] },
+      cn: { unit:'조위안', data:[{d:'2022-01',v:244},{d:'2022-07',v:258},{d:'2023-01',v:273},{d:'2023-07',v:285},{d:'2024-01',v:298},{d:'2024-07',v:312},{d:'2025-01',v:322},{d:'2025-04',v:326}] },
+    };
+  }
+}
+
+function drawM2Chart(country) {
+  const id = `chart-m2-${country}`;
+  const canvas = document.getElementById(id);
+  if (!canvas || !m2Data) return;
+  if (charts[id]) charts[id].destroy();
+
+  const hist = m2Data[country];
+  if (!hist || !hist.data.length) return;
+
+  const labels = hist.data.map(d => d.d);
+  const values = hist.data.map(d => d.v);
+  const cols = {us:'#0066ff', kr:'#dc2626', cn:'#e07b00'};
+  const col  = cols[country];
+
+  // 최신값 카드에 업데이트
+  const latest = hist.data[hist.data.length - 1];
+
+  charts[id] = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        borderColor: col,
+        backgroundColor: col + '15',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 2,
+        pointBackgroundColor: col,
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ctx.parsed.y.toFixed(1) + hist.unit
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: '#e5e7eb' },
+          ticks: { color: '#9ca3af', font: { size: 10 }, maxTicksLimit: 8 }
+        },
+        y: {
+          grid: { color: '#e5e7eb' },
+          ticks: {
+            color: '#9ca3af', font: { size: 10 },
+            callback: v => v.toFixed(0) + hist.unit
+          }
+        }
+      }
+    }
+  });
+}
+
 
 function drawYieldCurve(c, labels, vals) {
   const id=`chart-${c}-yield`;
