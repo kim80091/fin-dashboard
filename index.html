@@ -270,7 +270,7 @@
     <div class="section-header">
       <div class="section-title">글로벌 주식시장</div>
       <div class="add-ticker-bar">
-        <input class="ticker-input" id="stocks-input" placeholder="예) AAPL" maxlength="20">
+        <input class="ticker-input" id="stocks-input" placeholder="예) AAPL, 005930.KS" maxlength="20">
         <button class="add-btn" onclick="confirmAdd('stocks')">+ 추가</button>
       </div>
     </div>
@@ -1138,7 +1138,14 @@ function confirmAdd(section) {
   if (!val){alert('티커 코드를 입력하세요.');return;}
   pendingAction={type:'add',section,symbol:val};
   document.getElementById('modal-title').textContent='종목 추가';
-  document.getElementById('modal-body').innerHTML=`<strong>${val}</strong> 을(를) <strong>${{forex:'환율',stocks:'주식',crypto:'암호화폐'}[section]}</strong>에 추가하시겠습니까?<br><span style="color:var(--text3);font-size:11px;display:block;margin-top:6px">Yahoo Finance 티커코드 기준</span>`;
+  // 6자리 숫자 안내
+  let hint = 'Yahoo Finance 티커코드 기준';
+  if (section === 'stocks' && /^\d{6}$/.test(val)) {
+    hint = `한국 주식으로 인식 → <strong>${val}.KS</strong> 로 추가됩니다 (코스닥은 ${val}.KQ 직접 입력)`;
+  } else if (section === 'stocks') {
+    hint = '미국:AAPL · 한국:005930.KS(코스피)/.KQ(코스닥) · 일본:7203.T';
+  }
+  document.getElementById('modal-body').innerHTML=`<strong>${val}</strong> 을(를) <strong>${{forex:'환율',stocks:'주식',crypto:'암호화폐'}[section]}</strong>에 추가하시겠습니까?<br><span style="color:var(--text3);font-size:11px;display:block;margin-top:6px">${hint}</span>`;
   document.getElementById('modal-confirm-btn').className='modal-confirm add';
   document.getElementById('modal-confirm-btn').textContent='추가';
   document.getElementById('modal').classList.add('show');
@@ -1158,21 +1165,31 @@ async function modalConfirm(){
   const{type,section,symbol,idx}=pendingAction;
   closeModal();
   if (type==='add'){
+    let finalSymbol = symbol;
     const isUpbit = section==='crypto' && (symbol.startsWith('KRW-')||symbol.startsWith('USDT-'));
     // 주식/환율 추가 시 unit 자동 추정
     let unit = '';
     if (section === 'stocks') {
-      if (symbol.endsWith('.KS') || symbol.endsWith('.KQ') || symbol === '^KS11' || symbol === '^KQ11') unit = 'KRW';
-      else if (symbol.endsWith('.T')  || symbol === '^N225') unit = 'JPY';
-      else if (symbol.endsWith('.SS') || symbol.endsWith('.SZ')) unit = 'CNY';
-      else unit = 'USD';
+      // 6자리 숫자만 입력 시 한국 주식으로 간주 → .KS 자동 부착
+      if (/^\d{6}$/.test(symbol)) {
+        finalSymbol = symbol + '.KS';
+        unit = 'KRW';
+      } else if (finalSymbol.endsWith('.KS') || finalSymbol.endsWith('.KQ') || finalSymbol === '^KS11' || finalSymbol === '^KQ11') {
+        unit = 'KRW';
+      } else if (finalSymbol.endsWith('.T') || finalSymbol === '^N225') {
+        unit = 'JPY';
+      } else if (finalSymbol.endsWith('.SS') || finalSymbol.endsWith('.SZ')) {
+        unit = 'CNY';
+      } else {
+        unit = 'USD';
+      }
     } else if (section === 'forex') {
       if (symbol.includes('KRW')) unit = 'KRW';
       else if (symbol.includes('JPY')) unit = 'JPY';
       else if (symbol.includes('CNY')) unit = 'CNY';
       else unit = 'USD';
     }
-    state[section].tickers.push({symbol, label:symbol, sub:symbol, unit, upbit:isUpbit});
+    state[section].tickers.push({symbol: finalSymbol, label: finalSymbol, sub: finalSymbol, unit, upbit:isUpbit});
     saveTickers(section); await reloadSection(section);
     const inp=document.getElementById(`${section}-input`); if(inp) inp.value='';
   } else {
