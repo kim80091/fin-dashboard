@@ -1151,8 +1151,9 @@ function confirmRemove(section,idx) {
 }
 function closeModal(){document.getElementById('modal').classList.remove('show');pendingAction=null;}
 async function modalConfirm(){
-  closeModal(); if(!pendingAction)return;
+  if(!pendingAction)return;
   const{type,section,symbol,idx}=pendingAction;
+  closeModal();
   if (type==='add'){
     const isUpbit = section==='crypto' && (symbol.startsWith('KRW-')||symbol.startsWith('USDT-'));
     // 주식/환율 추가 시 unit 자동 추정
