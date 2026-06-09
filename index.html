@@ -1176,7 +1176,38 @@ async function modalConfirm(){
     state[section].tickers.splice(idx,1);saveTickers(section);await reloadSection(section);
   }
 }
-function saveTickers(s){localStorage.setItem(`dash_${s}`,JSON.stringify(state[s].tickers));}
+function saveTickers(s) {
+  localStorage.setItem(`dash_${s}`, JSON.stringify(state[s].tickers));
+  // KV 동기화 (백그라운드)
+  syncConfigToKV();
+}
+
+async function syncConfigToKV() {
+  try {
+    const payload = {
+      forex:  state.forex.tickers,
+      stocks: state.stocks.tickers,
+      crypto: state.crypto.tickers,
+    };
+    await fetch(`${WORKER}/?type=config_set`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  } catch(e) { /* 실패해도 localStorage는 저장됨 */ }
+}
+
+async function loadConfigFromKV() {
+  try {
+    const res = await fetch(`${WORKER}/?type=config_get`);
+    if (!res.ok) return;
+    const cfg = await res.json();
+    // KV에 데이터가 있으면 state에 반영 (localStorage 덮어쓰기)
+    if (cfg.forex  && cfg.forex.length  > 0) { state.forex.tickers  = cfg.forex;  localStorage.setItem('dash_forex',  JSON.stringify(cfg.forex)); }
+    if (cfg.stocks && cfg.stocks.length > 0) { state.stocks.tickers = cfg.stocks; localStorage.setItem('dash_stocks', JSON.stringify(cfg.stocks)); }
+    if (cfg.crypto && cfg.crypto.length > 0) { state.crypto.tickers = cfg.crypto; localStorage.setItem('dash_crypto', JSON.stringify(cfg.crypto)); }
+  } catch(e) { /* KV 실패 시 localStorage 사용 */ }
+}
 async function reloadSection(s){
   if(s==='forex')await loadForex();
   if(s==='stocks')await loadStocks();
