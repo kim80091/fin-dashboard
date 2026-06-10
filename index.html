@@ -307,6 +307,21 @@
     </div>
     <div id="forex-table-wrap"><div class="loading-state"><div class="spinner"></div> 로딩 중...</div></div>
     <div id="cross-rates-wrap"></div>
+
+    <!-- PPP 섹션 -->
+    <div style="margin-top:16px">
+      <div class="section-title" style="margin-bottom:10px">📊 구매력평가 (PPP) <span style="font-size:11px;font-weight:400;color:var(--text3);margin-left:8px">원화 기준 물가수준 비교 · FRED</span></div>
+      <div class="section-note">
+        💡 <strong>PPP 환율</strong>은 같은 상품 바구니를 사는 데 필요한 금액 기준의 환율입니다.
+        PPP 환율 &lt; 시장환율이면 <strong style="color:var(--dn)">원화 저평가</strong>(해외 물가가 상대적으로 비쌈),
+        PPP 환율 &gt; 시장환율이면 <strong style="color:var(--up)">원화 과대평가</strong>입니다.
+      </div>
+      <div id="ppp-grid" class="econ-cards-grid" style="margin-top:10px"><div class="loading-state"><div class="spinner"></div></div></div>
+      <div class="chart-section" style="margin-top:12px">
+        <div class="chart-title">한국 PPP 환율 추이 (KRW / 국제달러)</div>
+        <div class="chart-container"><canvas id="chart-ppp-kr"></canvas></div>
+      </div>
+    </div>
   </section>
   <!-- STOCKS -->
   <section class="section" id="section-stocks">
@@ -342,19 +357,6 @@
     <div class="chart-section"><div class="chart-title">중국 M2 통화량 추이 <span style="font-size:10px;color:var(--text3);font-weight:400">(분기별, 조위안)</span></div><div class="chart-container" style="height:140px"><canvas id="chart-m2-cn"></canvas></div></div>
     </div>
 
-    <!-- PPP 섹션 -->
-    <div class="econ-country">
-      <div class="econ-country-title">📊 OECD 구매력평가 (PPP) <span style="font-size:11px;font-weight:400;color:var(--text3)">원화 기준 물가수준 비교</span></div>
-      <div class="section-note" style="margin-bottom:12px">
-        💡 PPP(구매력평가)는 같은 물건을 사는 데 각국에서 얼마가 필요한지를 비교합니다.
-        <strong>PPP 환율 &lt; 시장환율</strong>이면 원화 저평가(해외가 비쌈), <strong>PPP 환율 &gt; 시장환율</strong>이면 원화 과대평가입니다.
-      </div>
-      <div id="ppp-grid" class="econ-cards-grid"><div class="loading-state"><div class="spinner"></div></div></div>
-      <div class="chart-section" style="margin-top:12px">
-        <div class="chart-title">한국 PPP 환율 추이 (KRW / 국제달러)</div>
-        <div class="chart-container"><canvas id="chart-ppp-kr"></canvas></div>
-      </div>
-    </div>
   </section>
   <!-- CRYPTO -->
   <section class="section" id="section-crypto">
@@ -627,6 +629,7 @@ async function loadForex() {
   const results = await Promise.all(state.forex.tickers.map(t=>fetchYahoo(t.symbol,'30d')));
   renderForex(state.forex.tickers, results);
   renderCrossRates(results);
+  loadPPPData();  // PPP 비동기 로드 (환율탭)
 }
 
 /* ─── STOCKS ─── */
@@ -756,7 +759,7 @@ const BOND_FB = {
 
 async function loadEconomy() {
   // M2 + 미국 재무부 + PPP 병렬 로딩
-  await Promise.all([loadM2Data(), loadPPPData()]);
+  await loadM2Data();
   let usTreasury = null;
   try {
     const res = await fetch('https://fss-proxy.kim80091.workers.dev/?type=us_treasury');
