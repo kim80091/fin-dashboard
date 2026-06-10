@@ -341,6 +341,20 @@
       <div class="chart-section"><div class="chart-title">중국 수익률 곡선</div><div class="chart-container"><canvas id="chart-cn-yield"></canvas></div></div>
     <div class="chart-section"><div class="chart-title">중국 M2 통화량 추이 <span style="font-size:10px;color:var(--text3);font-weight:400">(분기별, 조위안)</span></div><div class="chart-container" style="height:140px"><canvas id="chart-m2-cn"></canvas></div></div>
     </div>
+
+    <!-- PPP 섹션 -->
+    <div class="econ-country">
+      <div class="econ-country-title">📊 OECD 구매력평가 (PPP) <span style="font-size:11px;font-weight:400;color:var(--text3)">원화 기준 물가수준 비교</span></div>
+      <div class="section-note" style="margin-bottom:12px">
+        💡 PPP(구매력평가)는 같은 물건을 사는 데 각국에서 얼마가 필요한지를 비교합니다.
+        <strong>PPP 환율 &lt; 시장환율</strong>이면 원화 저평가(해외가 비쌈), <strong>PPP 환율 &gt; 시장환율</strong>이면 원화 과대평가입니다.
+      </div>
+      <div id="ppp-grid" class="econ-cards-grid"><div class="loading-state"><div class="spinner"></div></div></div>
+      <div class="chart-section" style="margin-top:12px">
+        <div class="chart-title">한국 PPP 환율 추이 (KRW / 국제달러)</div>
+        <div class="chart-container"><canvas id="chart-ppp-kr"></canvas></div>
+      </div>
+    </div>
   </section>
   <!-- CRYPTO -->
   <section class="section" id="section-crypto">
@@ -741,8 +755,8 @@ const BOND_FB = {
 };
 
 async function loadEconomy() {
-  // M2 + 미국 재무부 데이터 병렬 로딩
-  await loadM2Data();
+  // M2 + 미국 재무부 + PPP 병렬 로딩
+  await Promise.all([loadM2Data(), loadPPPData()]);
   let usTreasury = null;
   try {
     const res = await fetch('https://fss-proxy.kim80091.workers.dev/?type=us_treasury');
@@ -899,6 +913,141 @@ function drawM2Chart(country) {
   });
 }
 
+
+
+/* ─── PPP 구매력평가 ─── */
+let pppData = null;
+
+async function loadPPPData() {
+  try {
+    const res = await fetch(`${WORKER}/?type=ppp`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    if (json.error) throw new Error(json.error);
+    pppData = json;
+    renderPPP();
+  } catch(e) {
+    console.warn('PPP 로딩 실패:', e.message);
+    // 정적 fallback (2023년 기준)
+    pppData = {
+      base: 'KRW', updated: 2023,
+      rates: {
+        KOR: { name:'한국', flag:'🇰🇷', currency:'KRW', ppp: 892.28, year:2023 },
+        USA: { name:'미국', flag:'🇺🇸', currency:'USD', ppp: 1.00,   year:2023 },
+        CHN: { name:'중국', flag:'🇨🇳', currency:'CNY', ppp: 4.18,   year:2023 },
+        JPN: { name:'일본', flag:'🇯🇵', currency:'JPY', ppp: 98.32,  year:2023 },
+        DEU: { name:'독일', flag:'🇩🇪', currency:'EUR', ppp: 0.77,   year:2023 },
+        GBR: { name:'영국', flag:'🇬🇧', currency:'GBP', ppp: 0.68,   year:2023 },
+      },
+      history: {}
+    };
+    renderPPP();
+  }
+}
+
+function renderPPP() {
+  const grid = document.getElementById('ppp-grid');
+  if (!grid || !pppData) return;
+
+  // 현재 시장환율 (state.forex에서 가져오기)
+  const getMarketRate = (currency) => {
+    const symMap = { USD:'KRW=X', EUR:'EURUSD=X', JPY:'JPY=X', CNY:'CNY=X', GBP:'GBPUSD=X' };
+    // forex 데이터에서 직접 읽기는 어려우므로 최근 캐시값 사용
+    return null;
+  };
+
+  // KOR PPP = 국제달러당 원화 (예: 892원)
+  const korPPP = pppData.rates['KOR']?.ppp;
+  const usaPPP = pppData.rates['USA']?.ppp || 1;
+
+  // PPP 기준 원/달러 환율 = korPPP / usaPPP
+  const pppUsdKrw = korPPP ? korPPP / usaPPP : null;
+
+  grid.innerHTML = '';
+
+  // 각국 PPP 카드
+  const order = ['KOR','USA','CHN','JPN','DEU','GBR'];
+  order.forEach(code => {
+    const r = pppData.rates[code];
+    if (!r) return;
+
+    // PPP 기준 원화 환산
+    // X국 1단위 = (KOR_PPP / X_PPP) 원
+    const pppKrw = korPPP && r.ppp ? korPPP / r.ppp : null;
+
+    let compareHtml = '';
+    if (code === 'KOR') {
+      compareHtml = `<div style="font-size:10px;color:var(--text3);margin-top:3px">기준국 · ${r.year}년</div>`;
+    } else if (pppKrw) {
+      compareHtml = `
+        <div style="font-size:11px;color:var(--text3);margin-top:3px">
+          PPP 기준: 1${r.currency} = <strong style="color:var(--accent)">${fmtNum(pppKrw,0)}원</strong>
+        </div>
+        <div style="font-size:10px;color:var(--text3)">${r.year}년 기준</div>`;
+    }
+
+    grid.innerHTML += `<div class="econ-card">
+      <div class="econ-card-label">${r.flag} ${r.name}</div>
+      <div class="econ-card-value" style="font-size:15px">${fmtNum(r.ppp,2)}<span style="font-size:11px;color:var(--text3);margin-left:2px">${r.currency}/int$</span></div>
+      ${compareHtml}
+    </div>`;
+  });
+
+  // PPP vs 시장환율 비교 카드
+  if (pppUsdKrw) {
+    grid.innerHTML += `<div class="econ-card" style="border-color:var(--accent);border-width:2px">
+      <div class="econ-card-label">💱 PPP 적정 환율</div>
+      <div class="econ-card-value" style="font-size:15px;color:var(--accent)">${fmtNum(pppUsdKrw,0)}<span style="font-size:11px;color:var(--text3);margin-left:2px">원/달러</span></div>
+      <div style="font-size:10px;color:var(--text3);margin-top:3px">구매력 기준 공정 환율</div>
+    </div>`;
+  }
+
+  // PPP 이력 차트
+  if (pppData.history?.KOR?.length > 0) {
+    drawPPPChart();
+  }
+}
+
+function drawPPPChart() {
+  const canvas = document.getElementById('chart-ppp-kr');
+  if (!canvas || !pppData?.history?.KOR) return;
+  if (charts['chart-ppp-kr']) charts['chart-ppp-kr'].destroy();
+
+  const korH = pppData.history.KOR;
+  const labels = korH.map(d => d.year.toString());
+  const values = korH.map(d => parseFloat(d.val.toFixed(1)));
+
+  charts['chart-ppp-kr'] = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'PPP 환율 (KRW/int$)',
+        data: values,
+        borderColor: '#0066ff',
+        backgroundColor: '#0066ff18',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 3,
+        pointBackgroundColor: '#0066ff',
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ctx.parsed.y.toFixed(1) + ' KRW/int$' } }
+      },
+      scales: {
+        x: { grid: { color:'#e5e7eb' }, ticks: { color:'#9ca3af', font:{size:11} } },
+        y: { grid: { color:'#e5e7eb' }, ticks: { color:'#9ca3af', font:{size:11},
+          callback: v => fmtNum(v,0) + '원'
+        }}
+      }
+    }
+  });
+}
 
 function drawYieldCurve(c, labels, vals) {
   const id=`chart-${c}-yield`;
