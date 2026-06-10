@@ -236,6 +236,48 @@
     .pc-table-row { display: none !important; }
     .row-table-head { display: none !important; }
   }
+
+  /* ── 크로스 환율 ── */
+  #cross-rates-wrap {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-top: 12px;
+    box-shadow: var(--shadow);
+  }
+  .cross-title {
+    font-size: 13px; font-weight: 700;
+    color: var(--text); margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .cross-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 8px;
+  }
+  .cross-row {
+    background: var(--bg3);
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .cross-label {
+    font-size: 12px; font-weight: 700; color: var(--text);
+  }
+  .cross-formula {
+    font-size: 10px; color: var(--text3);
+    font-family: 'Space Mono', monospace;
+  }
+  .cross-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 18px; font-weight: 700; color: var(--accent);
+    margin-top: 2px;
+  }
+  .cross-unit {
+    font-size: 11px; color: var(--text3); margin-left: 3px; font-weight: 400;
+  }
 </style>
 </head>
 <body>
@@ -264,6 +306,7 @@
       </div>
     </div>
     <div id="forex-table-wrap"><div class="loading-state"><div class="spinner"></div> 로딩 중...</div></div>
+    <div id="cross-rates-wrap"></div>
   </section>
   <!-- STOCKS -->
   <section class="section" id="section-stocks">
@@ -411,6 +454,7 @@ async function fetchYahoo(symbol, range='30d') {
       });
     return {
       price, currency: meta.currency,
+      name: meta.longName || meta.shortName || '',
       change1d:  n>=2  ? pct(closes[n-1],closes[n-2])  : null,
       change3d:  n>=4  ? pct(closes[n-1],closes[n-4])  : null,
       change5d:  n>=6  ? pct(closes[n-1],closes[n-6])  : null,
@@ -437,6 +481,57 @@ function fmtChg(v, date) {
 function chgClass(v) { return v==null?'neu':v>0?'up':v<0?'dn':'neu'; }
 
 /* ─── FOREX ─── */
+
+/* ─── 원화 기준 크로스 환율 ─── */
+function renderCrossRates(results) {
+  const wrap = document.getElementById('cross-rates-wrap');
+  if (!wrap) return;
+
+  // 티커에서 각 환율 찾기
+  const findRate = (sym) => {
+    const idx = state.forex.tickers.findIndex(t => t.symbol === sym);
+    return idx >= 0 && results[idx] && !results[idx].error ? results[idx].price : null;
+  };
+
+  // 기본 환율
+  const usdKrw  = findRate('KRW=X');    // 1 USD = X KRW
+  const eurUsd  = findRate('EURUSD=X'); // 1 EUR = X USD
+  const usdJpy  = findRate('JPY=X');    // 1 USD = X JPY
+  const usdCny  = findRate('CNY=X');    // 1 USD = X CNY
+
+  if (!usdKrw) { wrap.innerHTML = ''; return; }
+
+  // 크로스 계산 (원화 기준)
+  // 1 EUR = eurUsd × usdKrw KRW
+  const eurKrw = eurUsd ? eurUsd * usdKrw : null;
+  // 100 JPY = (100 / usdJpy) × usdKrw KRW
+  const jpyKrw100 = usdJpy ? (100 / usdJpy) * usdKrw : null;
+  // 1 CNY = (1 / usdCny) × usdKrw KRW
+  const cnyKrw = usdCny ? (1 / usdCny) * usdKrw : null;
+  // 1 USD = usdKrw KRW (직접)
+  const usdKrwDirect = usdKrw;
+
+  const row = (flag, label, formula, value, unit='원') => {
+    if (!value) return '';
+    return `<div class="cross-row">
+      <div class="cross-label">${flag} ${label}</div>
+      <div class="cross-formula">${formula}</div>
+      <div class="cross-value">${fmtNum(value, 2)}<span class="cross-unit">${unit}</span></div>
+    </div>`;
+  };
+
+  wrap.innerHTML = `
+    <div class="cross-title">
+      🔄 원화 기준 환산 <span style="font-size:10px;color:var(--text3);font-weight:400">(KRW 직접거래 없음 → USD 경유 2단계 계산)</span>
+    </div>
+    <div class="cross-grid">
+      ${row('🇺🇸','1 달러 (USD)', '직접', usdKrwDirect)}
+      ${row('🇪🇺','1 유로 (EUR)', `1 EUR × ${fmtNum(eurUsd,4)} × ${fmtNum(usdKrw,2)}`, eurKrw)}
+      ${row('🇯🇵','100 엔 (JPY)', `100 ÷ ${fmtNum(usdJpy,2)} × ${fmtNum(usdKrw,2)}`, jpyKrw100)}
+      ${row('🇨🇳','1 위안 (CNY)', `1 ÷ ${fmtNum(usdCny,4)} × ${fmtNum(usdKrw,2)}`, cnyKrw)}
+    </div>`;
+}
+
 function renderForex(tickers, results) {
   const wrap = document.getElementById('forex-table-wrap');
   // PC 헤더
@@ -517,6 +612,7 @@ async function loadForex() {
   document.getElementById('forex-table-wrap').innerHTML='<div class="loading-state"><div class="spinner"></div> 로딩 중...</div>';
   const results = await Promise.all(state.forex.tickers.map(t=>fetchYahoo(t.symbol,'30d')));
   renderForex(state.forex.tickers, results);
+  renderCrossRates(results);
 }
 
 /* ─── STOCKS ─── */
@@ -1189,7 +1285,19 @@ async function modalConfirm(){
       else if (symbol.includes('CNY')) unit = 'CNY';
       else unit = 'USD';
     }
-    state[section].tickers.push({symbol: finalSymbol, label: finalSymbol, sub: finalSymbol, unit, upbit:isUpbit});
+    // 종목명 자동 조회 (주식만)
+    let label = finalSymbol;
+    let sub   = finalSymbol;
+    if (section === 'stocks' || section === 'forex') {
+      try {
+        const qr = await fetchYahoo(finalSymbol, '5d');
+        if (!qr.error && qr.name) {
+          label = qr.name;
+          sub   = finalSymbol;
+        }
+      } catch(e) {}
+    }
+    state[section].tickers.push({symbol: finalSymbol, label, sub, unit, upbit:isUpbit});
     saveTickers(section); await reloadSection(section);
     const inp=document.getElementById(`${section}-input`); if(inp) inp.value='';
   } else {
