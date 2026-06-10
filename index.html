@@ -312,11 +312,12 @@
     <div style="margin-top:16px">
       <div class="section-title" style="margin-bottom:10px">📊 구매력평가 (PPP) <span style="font-size:11px;font-weight:400;color:var(--text3);margin-left:8px">원화 기준 물가수준 비교 · FRED</span></div>
       <div class="section-note">
-        💡 <strong>PPP 환율</strong>은 같은 상품 바구니를 사는 데 필요한 금액 기준의 환율입니다.
-        PPP 환율 &lt; 시장환율이면 <strong style="color:var(--dn)">원화 저평가</strong>(해외 물가가 상대적으로 비쌈),
-        PPP 환율 &gt; 시장환율이면 <strong style="color:var(--up)">원화 과대평가</strong>입니다.
+        💡 <strong>PPP 환율</strong>은 각국에서 동일한 물건을 살 때 필요한 금액을 비교한 환율입니다.
+        <strong style="color:var(--dn)">저평가</strong> = 시장환율 &gt; PPP환율 → 원화로 해외에서 체감 물가가 비쌈 |
+        <strong style="color:var(--up)">과대평가</strong> = 시장환율 &lt; PPP환율 → 원화로 해외에서 체감 물가가 쌈
       </div>
       <div id="ppp-grid" class="econ-cards-grid" style="margin-top:10px"><div class="loading-state"><div class="spinner"></div></div></div>
+      <div id="ppp-bar-wrap" style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:16px;margin-top:12px;box-shadow:var(--shadow)"></div>
       <div class="chart-section" style="margin-top:12px">
         <div class="chart-title">한국 PPP 환율 추이 (KRW / 국제달러)</div>
         <div class="chart-container"><canvas id="chart-ppp-kr"></canvas></div>
@@ -627,6 +628,7 @@ function renderForex(tickers, results) {
 async function loadForex() {
   document.getElementById('forex-table-wrap').innerHTML='<div class="loading-state"><div class="spinner"></div> 로딩 중...</div>';
   const results = await Promise.all(state.forex.tickers.map(t=>fetchYahoo(t.symbol,'30d')));
+  window._forexCache = results;  // PPP에서 시장환율 참조용
   renderForex(state.forex.tickers, results);
   renderCrossRates(results);
   loadPPPData();  // PPP 비동기 로드 (환율탭)
@@ -952,63 +954,185 @@ function renderPPP() {
   const grid = document.getElementById('ppp-grid');
   if (!grid || !pppData) return;
 
-  // 현재 시장환율 (state.forex에서 가져오기)
-  const getMarketRate = (currency) => {
-    const symMap = { USD:'KRW=X', EUR:'EURUSD=X', JPY:'JPY=X', CNY:'CNY=X', GBP:'GBPUSD=X' };
-    // forex 데이터에서 직접 읽기는 어려우므로 최근 캐시값 사용
-    return null;
+  const korPPP = pppData.rates['KOR']?.ppp;
+  if (!korPPP) return;
+
+  // 시장환율 가져오기 (state.forex에서)
+  const getMarket = (sym) => {
+    const idx = state.forex.tickers.findIndex(t => t.symbol === sym);
+    if (idx < 0) return null;
+    // loadForex 결과가 없으면 null
+    return window._forexCache?.[idx]?.price || null;
   };
 
-  // KOR PPP = 국제달러당 원화 (예: 892원)
-  const korPPP = pppData.rates['KOR']?.ppp;
-  const usaPPP = pppData.rates['USA']?.ppp || 1;
+  // PPP 기준 원화 환산 & 시장환율 기준 원화 환산
+  // 미국: PPP = korPPP/usaPPP, 시장 = KRW=X
+  // 일본: PPP = korPPP/jpyPPP*100(100엔), 시장 = 100/JPY=X * KRW=X
+  const usdKrwMkt  = getMarket('KRW=X');
+  const eurUsdMkt  = getMarket('EURUSD=X');
+  const usdJpyMkt  = getMarket('JPY=X');
+  const usdCnyMkt  = getMarket('CNY=X');
+  const gbpUsdMkt  = getMarket('GBPUSD=X');
 
-  // PPP 기준 원/달러 환율 = korPPP / usaPPP
-  const pppUsdKrw = korPPP ? korPPP / usaPPP : null;
+  const rows = [
+    {
+      code:'USA', label:'달러 (USD)', flag:'🇺🇸', unit:'1달러',
+      pppKrw: korPPP / (pppData.rates['USA']?.ppp || 1),
+      mktKrw: usdKrwMkt,
+    },
+    {
+      code:'CHN', label:'위안 (CNY)', flag:'🇨🇳', unit:'1위안',
+      pppKrw: pppData.rates['CHN'] ? korPPP / pppData.rates['CHN'].ppp : null,
+      mktKrw: usdKrwMkt && usdCnyMkt ? usdKrwMkt / usdCnyMkt : null,
+    },
+    {
+      code:'JPN', label:'엔 (JPY)', flag:'🇯🇵', unit:'100엔',
+      pppKrw: pppData.rates['JPN'] ? (korPPP / pppData.rates['JPN'].ppp) * 100 : null,
+      mktKrw: usdKrwMkt && usdJpyMkt ? (usdKrwMkt / usdJpyMkt) * 100 : null,
+    },
+    {
+      code:'DEU', label:'유로 (EUR)', flag:'🇪🇺', unit:'1유로',
+      pppKrw: pppData.rates['DEU'] ? korPPP / pppData.rates['DEU'].ppp : null,
+      mktKrw: usdKrwMkt && eurUsdMkt ? eurUsdMkt * usdKrwMkt : null,
+    },
+    {
+      code:'GBR', label:'파운드 (GBP)', flag:'🇬🇧', unit:'1파운드',
+      pppKrw: pppData.rates['GBR'] ? korPPP / pppData.rates['GBR'].ppp : null,
+      mktKrw: usdKrwMkt && gbpUsdMkt ? gbpUsdMkt * usdKrwMkt : null,
+    },
+  ];
 
-  grid.innerHTML = '';
-
-  // 각국 PPP 카드
-  const order = ['KOR','USA','CHN','JPN','DEU','GBR'];
-  order.forEach(code => {
-    const r = pppData.rates[code];
-    if (!r) return;
-
-    // PPP 기준 원화 환산
-    // X국 1단위 = (KOR_PPP / X_PPP) 원
-    const pppKrw = korPPP && r.ppp ? korPPP / r.ppp : null;
-
-    let compareHtml = '';
-    if (code === 'KOR') {
-      compareHtml = `<div style="font-size:10px;color:var(--text3);margin-top:3px">기준국 · ${r.year}년</div>`;
-    } else if (pppKrw) {
-      compareHtml = `
-        <div style="font-size:11px;color:var(--text3);margin-top:3px">
-          PPP 기준: 1${r.currency} = <strong style="color:var(--accent)">${fmtNum(pppKrw,0)}원</strong>
+  // 테이블 렌더링
+  let html = `
+    <div class="row-table" style="margin-bottom:0">
+      <div class="row-table-head">
+        <div style="display:grid;grid-template-columns:140px 130px 130px 110px 1fr;align-items:center;padding:8px 16px;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.4px">
+          <div>통화</div>
+          <div style="text-align:right">시장환율 기준</div>
+          <div style="text-align:right">PPP 기준</div>
+          <div style="text-align:right">괴리율</div>
+          <div style="text-align:right">평가</div>
         </div>
-        <div style="font-size:10px;color:var(--text3)">${r.year}년 기준</div>`;
-    }
+      </div>`;
 
-    grid.innerHTML += `<div class="econ-card">
-      <div class="econ-card-label">${r.flag} ${r.name}</div>
-      <div class="econ-card-value" style="font-size:15px">${fmtNum(r.ppp,2)}<span style="font-size:11px;color:var(--text3);margin-left:2px">${r.currency}/int$</span></div>
-      ${compareHtml}
+  rows.forEach(r => {
+    const hasBoth = r.pppKrw && r.mktKrw;
+    const diff = hasBoth ? ((r.mktKrw - r.pppKrw) / r.pppKrw) * 100 : null;
+
+    // diff > 0: 시장환율 > PPP → 원화 저평가 (해외가 비쌈)
+    // diff < 0: 시장환율 < PPP → 원화 과대평가
+    const isUnder  = diff !== null && diff > 3;
+    const isOver   = diff !== null && diff < -3;
+    const isBalanced = diff !== null && Math.abs(diff) <= 3;
+
+    const diffStr = diff !== null
+      ? `<span style="font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:${isUnder?'var(--dn)':isOver?'var(--up)':'var(--text3)'}">${diff>0?'+':''}${diff.toFixed(1)}%</span>`
+      : '─';
+
+    const evalStr = diff === null ? '─'
+      : isUnder    ? `<span style="background:rgba(37,99,235,.1);color:var(--dn);font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px">원화 저평가</span>`
+      : isOver     ? `<span style="background:rgba(220,38,38,.1);color:var(--up);font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px">원화 과대평가</span>`
+      : `<span style="background:var(--bg3);color:var(--text3);font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px">균형</span>`;
+
+    html += `<div style="display:grid;grid-template-columns:140px 130px 130px 110px 1fr;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);transition:background .1s" onmouseenter="this.style.background='var(--bg3)'" onmouseleave="this.style.background=''">
+      <div style="font-weight:700;font-size:13px">${r.flag} ${r.label}<br><span style="font-size:10px;color:var(--text3);font-weight:400">${r.unit}</span></div>
+      <div style="text-align:right;font-family:'Space Mono',monospace;font-size:13px;font-weight:700">${r.mktKrw ? fmtNum(r.mktKrw,0)+'원' : '─'}</div>
+      <div style="text-align:right;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--accent)">${r.pppKrw ? fmtNum(r.pppKrw,0)+'원' : '─'}</div>
+      <div style="text-align:right">${diffStr}</div>
+      <div style="text-align:right">${evalStr}</div>
     </div>`;
   });
 
-  // PPP vs 시장환율 비교 카드
-  if (pppUsdKrw) {
-    grid.innerHTML += `<div class="econ-card" style="border-color:var(--accent);border-width:2px">
-      <div class="econ-card-label">💱 PPP 적정 환율</div>
-      <div class="econ-card-value" style="font-size:15px;color:var(--accent)">${fmtNum(pppUsdKrw,0)}<span style="font-size:11px;color:var(--text3);margin-left:2px">원/달러</span></div>
-      <div style="font-size:10px;color:var(--text3);margin-top:3px">구매력 기준 공정 환율</div>
+  html += `</div>
+    <div style="font-size:10px;color:var(--text3);margin-top:8px;padding:0 4px">
+      📌 괴리율 = (시장환율 - PPP환율) / PPP환율 × 100 | 양수: 원화 저평가(해외 체감 물가↑), 음수: 원화 과대평가 | PPP기준: IMF WEO ${pppData.rates['KOR']?.year}년
     </div>`;
-  }
+
+  grid.innerHTML = html;
+
+  // 달러 기준 구매력 바 차트
+  renderPPPBar();
 
   // PPP 이력 차트
-  if (pppData.history?.KOR?.length > 0) {
-    drawPPPChart();
-  }
+  if (pppData.history?.KOR?.length > 0) drawPPPChart();
+}
+
+function renderPPPBar() {
+  const wrap = document.getElementById('ppp-bar-wrap');
+  if (!wrap || !pppData) return;
+
+  const korPPP = pppData.rates['KOR']?.ppp;
+  if (!korPPP) return;
+
+  // 시장환율 (forex 캐시)
+  const cache = window._forexCache || [];
+  const getRate = (sym) => {
+    const idx = state.forex.tickers.findIndex(t => t.symbol === sym);
+    return idx >= 0 && cache[idx] && !cache[idx].error ? cache[idx].price : null;
+  };
+  const usdKrw = getRate('KRW=X');
+  const usdJpy = getRate('JPY=X');
+  const usdCny = getRate('CNY=X');
+  const eurUsd = getRate('EURUSD=X');
+  const usdKrwMkt = usdKrw;
+
+  // $100로 각국에서 살 수 있는 달러 가치
+  // = 100 × (시장환율 ÷ PPP환율)
+  const items = [
+    { flag:'🇺🇸', name:'미국',   val: 100, note:'기준' },
+    {
+      flag:'🇰🇷', name:'한국',
+      val: usdKrwMkt ? parseFloat((100 * usdKrwMkt / korPPP).toFixed(1)) : null,
+      note: usdKrwMkt ? `시장 ${fmtNum(usdKrwMkt,0)}원 ÷ PPP ${fmtNum(korPPP,0)}원` : null
+    },
+    {
+      flag:'🇨🇳', name:'중국',
+      val: usdCny && pppData.rates['CHN'] ? parseFloat((100 * usdCny / pppData.rates['CHN'].ppp).toFixed(1)) : null,
+      note: usdCny ? `시장 ${fmtNum(usdCny,2)}위안 ÷ PPP ${pppData.rates['CHN']?.ppp}위안` : null
+    },
+    {
+      flag:'🇯🇵', name:'일본',
+      val: usdJpy && pppData.rates['JPN'] ? parseFloat((100 * usdJpy / pppData.rates['JPN'].ppp).toFixed(1)) : null,
+      note: usdJpy ? `시장 ${fmtNum(usdJpy,1)}엔 ÷ PPP ${pppData.rates['JPN']?.ppp}엔` : null
+    },
+    {
+      flag:'🇩🇪', name:'독일(유로)',
+      val: eurUsd && pppData.rates['DEU'] ? parseFloat((100 / (eurUsd * pppData.rates['DEU'].ppp)).toFixed(1)) : null,
+      note: null
+    },
+  ].filter(i => i.val !== null);
+
+  // 최대값 기준으로 바 너비 계산
+  const maxVal = Math.max(...items.map(i => i.val));
+
+  let html = `<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px">
+    💵 미국 $100로 각국에서 살 수 있는 실질 가치
+    <span style="font-size:10px;font-weight:400;color:var(--text3);margin-left:6px">PPP 기준 | 값이 클수록 해당국이 더 저렴</span>
+  </div>`;
+
+  items.forEach(item => {
+    const pct = (item.val / maxVal) * 100;
+    const isBase = item.name === '미국';
+    const isHigh = item.val > 100;
+    const barColor = isBase ? '#9ca3af' : isHigh ? 'var(--dn)' : 'var(--up)';
+    const labelColor = isBase ? 'var(--text3)' : isHigh ? 'var(--dn)' : 'var(--up)';
+
+    html += `<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-size:12px;font-weight:600">${item.flag} ${item.name}</span>
+        <span style="font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:${labelColor}">
+          $${item.val}
+          ${!isBase ? `<span style="font-size:10px;font-weight:400;color:var(--text3);margin-left:4px">(미국 대비 ${item.val>100?'+':''}${(item.val-100).toFixed(1)}%)</span>` : '<span style="font-size:10px;color:var(--text3);margin-left:4px">기준</span>'}
+        </span>
+      </div>
+      <div style="background:var(--bg3);border-radius:4px;height:8px;overflow:hidden">
+        <div style="width:${pct}%;height:100%;background:${barColor};border-radius:4px;transition:width .5s ease"></div>
+      </div>
+      ${item.note ? `<div style="font-size:9px;color:var(--text3);margin-top:2px">${item.note}</div>` : ''}
+    </div>`;
+  });
+
+  wrap.innerHTML = html;
 }
 
 function drawPPPChart() {
