@@ -470,11 +470,9 @@ async function fetchYahoo(symbol, range='30d') {
         return `${d.getMonth()+1}/${d.getDate()}`;
       });
 
-    // D-0: 현재가 vs 전일 종가 (Yahoo 제공값 우선, 없으면 직접 계산)
+    // D-0: 현재가 vs 전일 종가 (chartPreviousClose 기준 직접 계산)
     const prevClose = meta.chartPreviousClose || meta.previousClose;
-    const change1d = meta.regularMarketChangePercent != null
-      ? meta.regularMarketChangePercent          // Yahoo 직접 제공 당일 변동률
-      : pct(price, prevClose);                   // 없으면 직접 계산
+    const change1d = pct(price, prevClose);
 
     // D-3~D-20: 현재가(price) vs N일 전 종가
     // closes는 null 제거된 배열이므로 closes[n-1]=어제종가
