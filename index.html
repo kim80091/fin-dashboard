@@ -469,15 +469,25 @@ async function fetchYahoo(symbol, range='30d') {
         const d = new Date(ts * 1000);
         return `${d.getMonth()+1}/${d.getDate()}`;
       });
+
+    // D-0: 현재가 vs 전일 종가 (Yahoo 제공값 우선, 없으면 직접 계산)
+    const prevClose = meta.chartPreviousClose || meta.previousClose;
+    const change1d = meta.regularMarketChangePercent != null
+      ? meta.regularMarketChangePercent          // Yahoo 직접 제공 당일 변동률
+      : pct(price, prevClose);                   // 없으면 직접 계산
+
+    // D-3~D-20: 현재가(price) vs N일 전 종가
+    // closes는 null 제거된 배열이므로 closes[n-1]=어제종가
+    // 따라서 3일전=closes[n-4], 5일전=closes[n-6] 등
     return {
       price, currency: meta.currency,
       name: meta.longName || meta.shortName || '',
-      change1d:  n>=2  ? pct(closes[n-1],closes[n-2])  : null,
-      change3d:  n>=4  ? pct(closes[n-1],closes[n-4])  : null,
-      change5d:  n>=6  ? pct(closes[n-1],closes[n-6])  : null,
-      change10d: n>=11 ? pct(closes[n-1],closes[n-11]) : null,
-      change15d: n>=16 ? pct(closes[n-1],closes[n-16]) : null,
-      change20d: n>=21 ? pct(closes[n-1],closes[n-21]) : null,
+      change1d,
+      change3d:  n>=4  ? pct(price, closes[n-4])  : null,
+      change5d:  n>=6  ? pct(price, closes[n-6])  : null,
+      change10d: n>=11 ? pct(price, closes[n-11]) : null,
+      change15d: n>=16 ? pct(price, closes[n-16]) : null,
+      change20d: n>=21 ? pct(price, closes[n-21]) : null,
       dates: validDates,
       closes, error:false
     };
