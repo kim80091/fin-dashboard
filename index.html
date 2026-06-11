@@ -470,29 +470,33 @@ async function fetchYahoo(symbol, range='30d') {
         return `${d.getMonth()+1}/${d.getDate()}`;
       });
 
-    // D-1: 현재가 vs 전일 종가 (regularMarketPreviousClose 우선)
-    // 오늘 장 중에는 closes[n-1]이 오늘 현재가일 수 있어 부정확
-    const prevClose1 = meta.regularMarketPreviousClose
-                    || meta.chartPreviousClose
-                    || meta.previousClose;
+    // timestamps를 활용해 오늘 UTC 이전 확정 종가만 추출
+    // → regularMarketPreviousClose/chartPreviousClose는 외환 티커에서 신뢰 불가
+    const todayUTC = new Date().toISOString().slice(0, 10);
+    const tsArr    = result.timestamp || [];
+    const rawC     = result.indicators?.quote?.[0]?.close || [];
 
-    // D-3~D-20: closes 배열에서 전일 종가 이전 값 사용
-    // closes에 오늘 데이터가 포함될 수 있으므로 prevClose1과 비교해서 오늘 제거
-    const lastClose  = closes[n-1];
-    const hasTodayInCloses = prevClose1 && lastClose
-      && Math.abs(pct(lastClose, prevClose1)) < 0.01; // 거의 같으면 오늘 데이터
-    // 오늘 데이터가 closes에 포함됐으면 offset +1
-    const off = hasTodayInCloses ? 0 : 1; // closes[n-1]이 오늘이면 off=0, 어제면 off=1
+    // 오늘 UTC보다 이전 날짜이고 값이 있는 종가만 추출 (오래된 순)
+    const prevData = tsArr
+      .map((ts, i) => ({
+        date: new Date(ts * 1000).toISOString().slice(0, 10),
+        val:  rawC[i]
+      }))
+      .filter(d => d.date < todayUTC && d.val != null);
+
+    const pLen = prevData.length;
+    const pVal = (i) => pLen > i ? prevData[pLen - 1 - i].val : null;
+    // pVal(0) = 어제 종가, pVal(2) = 3일전 종가, pVal(4) = 5일전 종가 ...
 
     return {
       price, currency: meta.currency,
       name: meta.longName || meta.shortName || '',
-      change1d:  prevClose1 ? pct(price, prevClose1) : null,
-      change3d:  n>=(3+off)  ? pct(price, closes[n-3-off])  : null,
-      change5d:  n>=(5+off)  ? pct(price, closes[n-5-off])  : null,
-      change10d: n>=(10+off) ? pct(price, closes[n-10-off]) : null,
-      change15d: n>=(15+off) ? pct(price, closes[n-15-off]) : null,
-      change20d: n>=(20+off) ? pct(price, closes[n-20-off]) : null,
+      change1d:  pVal(0)  != null ? pct(price, pVal(0))  : null,
+      change3d:  pVal(2)  != null ? pct(price, pVal(2))  : null,
+      change5d:  pVal(4)  != null ? pct(price, pVal(4))  : null,
+      change10d: pVal(9)  != null ? pct(price, pVal(9))  : null,
+      change15d: pVal(14) != null ? pct(price, pVal(14)) : null,
+      change20d: pVal(19) != null ? pct(price, pVal(19)) : null,
       dates: validDates,
       closes, error:false
     };
