@@ -490,7 +490,7 @@ async function fetchYahoo(symbol, range='30d') {
 
     return {
       price, currency: meta.currency,
-      name: meta.longName || meta.shortName || '',
+      name: meta.shortName || meta.longName || '',
       change1d:  pVal(0)  != null ? pct(price, pVal(0))  : null,
       change3d:  pVal(2)  != null ? pct(price, pVal(2))  : null,
       change5d:  pVal(4)  != null ? pct(price, pVal(4))  : null,
@@ -731,7 +731,50 @@ function renderStocks(tickers, results) {
 
 async function loadStocks() {
   document.getElementById('stocks-table-wrap').innerHTML='<div class="loading-state"><div class="spinner"></div> 로딩 중...</div>';
+
+  // 한국 종목/지수 KIS 코드 추출
+  const kisSymMap = {}; // Yahoo symbol → KIS code
+  state.stocks.tickers.forEach(t => {
+    const sym = t.symbol;
+    if (sym === '^KS11')        kisSymMap[sym] = '0001';
+    else if (sym === '^KQ11')   kisSymMap[sym] = '1001';
+    else if (sym.endsWith('.KS') || sym.endsWith('.KQ'))
+      kisSymMap[sym] = sym.replace(/\.(KS|KQ)$/, '');
+  });
+
+  // KIS 전일 종가 조회 (한국 종목이 있을 때만)
+  let kisPrev = {};
+  const kisCodes = Object.values(kisSymMap);
+  if (kisCodes.length > 0) {
+    try {
+      const res = await fetch(`${WORKER}/?type=kis_prev&symbols=${kisCodes.join(',')}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (!json.error) {
+          // KIS 코드 → Yahoo symbol 역매핑
+          Object.entries(kisSymMap).forEach(([yahooSym, kisCode]) => {
+            if (json[kisCode]) kisPrev[yahooSym] = json[kisCode];
+          });
+        }
+      }
+    } catch(e) { console.warn('KIS prev close 실패:', e); }
+  }
+
   const results = await Promise.all(state.stocks.tickers.map(t=>fetchYahoo(t.symbol,'30d')));
+
+  // KIS 전일 종가로 D-1 교체
+  results.forEach((r, i) => {
+    const sym = state.stocks.tickers[i].symbol;
+    if (kisPrev[sym]?.prevClose && r && !r.error) {
+      r.change1d = pct(r.price, kisPrev[sym].prevClose);
+      r.kisPrevClose = kisPrev[sym].prevClose;
+      // 종목명도 KIS 한글명으로 교체 (지수 제외, 개별 종목만)
+      if (kisPrev[sym].name && !['0001','1001'].includes(kisSymMap[sym])) {
+        r.name = kisPrev[sym].name;
+      }
+    }
+  });
+
   renderStocks(state.stocks.tickers, results);
 }
 
