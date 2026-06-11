@@ -470,17 +470,13 @@ async function fetchYahoo(symbol, range='30d') {
         return `${d.getMonth()+1}/${d.getDate()}`;
       });
 
-    // D-0: 현재가 vs 전일 종가 (chartPreviousClose 기준 직접 계산)
-    const prevClose = meta.chartPreviousClose || meta.previousClose;
-    const change1d = pct(price, prevClose);
-
-    // D-3~D-20: 현재가(price) vs N일 전 종가
-    // closes는 null 제거된 배열이므로 closes[n-1]=어제종가
-    // 따라서 3일전=closes[n-4], 5일전=closes[n-6] 등
+    // closes는 null 제거된 배열 → closes[n-1] = 가장 최근 확정 종가(어제)
+    // D-0: 현재가 vs 어제 종가
+    // D-3: 현재가 vs 3영업일 전 종가 (closes[n-4])
     return {
       price, currency: meta.currency,
       name: meta.longName || meta.shortName || '',
-      change1d,
+      change1d:  n>=2  ? pct(price, closes[n-1])  : null,
       change3d:  n>=4  ? pct(price, closes[n-4])  : null,
       change5d:  n>=6  ? pct(price, closes[n-6])  : null,
       change10d: n>=11 ? pct(price, closes[n-11]) : null,
