@@ -470,18 +470,29 @@ async function fetchYahoo(symbol, range='30d') {
         return `${d.getMonth()+1}/${d.getDate()}`;
       });
 
-    // closes는 null 제거된 배열 → closes[n-1] = 가장 최근 확정 종가(어제)
-    // D-0: 현재가 vs 어제 종가
-    // D-3: 현재가 vs 3영업일 전 종가 (closes[n-4])
+    // D-1: 현재가 vs 전일 종가 (regularMarketPreviousClose 우선)
+    // 오늘 장 중에는 closes[n-1]이 오늘 현재가일 수 있어 부정확
+    const prevClose1 = meta.regularMarketPreviousClose
+                    || meta.chartPreviousClose
+                    || meta.previousClose;
+
+    // D-3~D-20: closes 배열에서 전일 종가 이전 값 사용
+    // closes에 오늘 데이터가 포함될 수 있으므로 prevClose1과 비교해서 오늘 제거
+    const lastClose  = closes[n-1];
+    const hasTodayInCloses = prevClose1 && lastClose
+      && Math.abs(pct(lastClose, prevClose1)) < 0.01; // 거의 같으면 오늘 데이터
+    // 오늘 데이터가 closes에 포함됐으면 offset +1
+    const off = hasTodayInCloses ? 0 : 1; // closes[n-1]이 오늘이면 off=0, 어제면 off=1
+
     return {
       price, currency: meta.currency,
       name: meta.longName || meta.shortName || '',
-      change1d:  n>=2  ? pct(price, closes[n-1])  : null,
-      change3d:  n>=4  ? pct(price, closes[n-4])  : null,
-      change5d:  n>=6  ? pct(price, closes[n-6])  : null,
-      change10d: n>=11 ? pct(price, closes[n-11]) : null,
-      change15d: n>=16 ? pct(price, closes[n-16]) : null,
-      change20d: n>=21 ? pct(price, closes[n-21]) : null,
+      change1d:  prevClose1 ? pct(price, prevClose1) : null,
+      change3d:  n>=(3+off)  ? pct(price, closes[n-3-off])  : null,
+      change5d:  n>=(5+off)  ? pct(price, closes[n-5-off])  : null,
+      change10d: n>=(10+off) ? pct(price, closes[n-10-off]) : null,
+      change15d: n>=(15+off) ? pct(price, closes[n-15-off]) : null,
+      change20d: n>=(20+off) ? pct(price, closes[n-20-off]) : null,
       dates: validDates,
       closes, error:false
     };
