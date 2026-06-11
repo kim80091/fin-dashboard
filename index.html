@@ -562,7 +562,7 @@ function renderForex(tickers, results) {
         <div></div><div>종목</div>
         <div>현재가 <span style="font-size:10px;font-weight:400;color:var(--accent);background:#e8f0fe;padding:1px 5px;border-radius:3px;margin-left:2px">기준</span></div>
         <div class="pc-only">단위</div>
-        <div class="col-chg">D-0<br><span style="font-weight:400;font-size:9px">오늘</span></div>
+        <div class="col-chg">D-1<br><span style="font-weight:400;font-size:9px">전일→현재</span></div>
         <div class="col-chg">D-3<br><span style="font-weight:400;font-size:9px">3일 전→현재</span></div>
         <div class="col-chg">D-5<br><span style="font-weight:400;font-size:9px">5일 전→현재</span></div>
         <div class="col-chg">D-10<br><span style="font-weight:400;font-size:9px">10일 전→현재</span></div>
@@ -582,7 +582,7 @@ function renderForex(tickers, results) {
     const dn = d.dates || [];
     const nl = dn.length;
     const chgs = [
-      {label:'D-0',  val: d.change1d,  date: dn[nl-1]},
+      {label:'D-1',  val: d.change1d,  date: dn[nl-1]},
       {label:'D-3',  val: d.change3d,  date: dn[nl-4]},
       {label:'D-5',  val: d.change5d,  date: dn[nl-6]},
       {label:'D-10', val: d.change10d, date: dn[nl-11]},
@@ -647,7 +647,7 @@ function renderStocks(tickers, results) {
         <div></div><div>종목</div>
         <div>현재가 <span style="font-size:10px;font-weight:400;color:var(--accent);background:#e8f0fe;padding:1px 5px;border-radius:3px;margin-left:2px">기준</span></div>
         <div class="pc-only">단위</div>
-        <div class="col-chg">D-0<br><span style="font-weight:400;font-size:9px">오늘</span></div>
+        <div class="col-chg">D-1<br><span style="font-weight:400;font-size:9px">전일→현재</span></div>
         <div class="col-chg">D-3<br><span style="font-weight:400;font-size:9px">3일 전→현재</span></div>
         <div class="col-chg">D-5<br><span style="font-weight:400;font-size:9px">5일 전→현재</span></div>
         <div class="col-chg">D-10<br><span style="font-weight:400;font-size:9px">10일 전→현재</span></div>
@@ -666,7 +666,7 @@ function renderStocks(tickers, results) {
 
     const dn = d.dates || [], nl = dn.length;
     const chgs = [
-      {label:'D-0',  val: d.change1d,  date: dn[nl-1]},
+      {label:'D-1',  val: d.change1d,  date: dn[nl-1]},
       {label:'D-3',  val: d.change3d,  date: dn[nl-4]},
       {label:'D-5',  val: d.change5d,  date: dn[nl-6]},
       {label:'D-10', val: d.change10d, date: dn[nl-11]},
