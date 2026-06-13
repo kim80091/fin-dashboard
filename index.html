@@ -65,7 +65,13 @@
   /* bank cols */
   .bank-cols{display:grid;grid-template-columns:160px 1fr 90px 100px 100px 100px 100px 32px;align-items:center;gap:0;}
   .bank-cols>div{padding:0 5px;}
-  .bank-cols-simple { display: block !important; }
+  .bank-cols-simple {
+  display: grid;
+  grid-template-columns: 160px 1fr 90px 80px;
+  align-items: center;
+  gap: 0;
+  }
+  .bank-cols-simple > div { padding: 0 5px; }
 
   .drag-handle{color:var(--text3);font-size:14px;cursor:grab;user-select:none;display:flex;align-items:center;justify-content:center;}
   .drag-handle:active{cursor:grabbing;}
@@ -217,6 +223,7 @@
 
     /* 은행 테이블도 카드형 */
     .bank-cols { display: block !important; }
+    .bank-cols-simple { display: block !important; }
     .bank-rate { font-size: 13px; }
 
     /* 섹션 노트 */
